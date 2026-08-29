@@ -157,6 +157,11 @@ body.js-ready .reveal--hero { transition-delay: 90ms; }
 body.js-ready .reveal--copy { transition-delay: 180ms; }
 body.js-ready .reveal--folder { transform: translate(-50%, calc(-50% + 64px)); transition-delay: 180ms; }
 body.js-ready .reveal--folder.is-visible { transform: translate(-50%, -50%); }
+body.js-ready .reveal-group .reveal {
+  transform: translateY(46px);
+  transition-duration: 500ms;
+}
+body.js-ready .reveal-group.is-visible .reveal { transform: translateY(0); }
 body.js-ready .reveal-group.is-visible .reveal { transition-delay: 0ms; }
 
 @media (prefers-reduced-motion: reduce) {
