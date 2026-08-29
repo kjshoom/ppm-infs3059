@@ -309,16 +309,27 @@ renderDetail();
 renderCompareBar();
 
 document.body.classList.add("js-ready");
-const revealItems = document.querySelectorAll(".reveal");
+const revealGroups = document.querySelectorAll(".reveal-group");
+const revealItems = Array.from(document.querySelectorAll(".reveal")).filter((item) => !item.closest(".reveal-group"));
 if ("IntersectionObserver" in window) {
   const revealObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach((entry) => {
       if (!entry.isIntersecting) return;
-      entry.target.classList.add("is-visible");
+      if (entry.target.classList.contains("reveal-group")) {
+        entry.target.classList.add("is-visible");
+        entry.target.querySelectorAll(".reveal").forEach((item) => item.classList.add("is-visible"));
+      } else {
+        entry.target.classList.add("is-visible");
+      }
       observer.unobserve(entry.target);
     });
   }, { threshold: 0.14, rootMargin: "0px 0px -8%" });
+  revealGroups.forEach((group) => revealObserver.observe(group));
   revealItems.forEach((item) => revealObserver.observe(item));
 } else {
+  revealGroups.forEach((group) => {
+    group.classList.add("is-visible");
+    group.querySelectorAll(".reveal").forEach((item) => item.classList.add("is-visible"));
+  });
   revealItems.forEach((item) => item.classList.add("is-visible"));
 }
