@@ -1,4 +1,4 @@
-# PPM Review — Portfolio UI & Functional Prototype
+# PPM — Project Portfolio Management UI & Functional Prototype
 
 A focused UI/UX prototype for INFS3059 project. The landing page uses a bold editorial portfolio treatment, while the review workspace follows a search–filter–list–detail pattern.
 
