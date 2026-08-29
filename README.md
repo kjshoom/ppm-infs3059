@@ -1,6 +1,6 @@
 # PPM Review — Portfolio UI & Functional Prototype
 
-A focused UI/UX prototype for Team Only 5's INFS3059 project. The landing page uses a bold editorial portfolio treatment, while the review workspace follows a search–filter–list–detail pattern.
+A focused UI/UX prototype for INFS3059 project. The landing page uses a bold editorial portfolio treatment, while the review workspace follows a search–filter–list–detail pattern.
 
 The prototype reflects the current agreed direction after the professor's feedback:
 
