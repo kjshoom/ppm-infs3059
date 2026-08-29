@@ -269,7 +269,7 @@ body.js-ready .reveal-group.is-visible .reveal { transition-delay: 0ms; }
 .proposal-select > p { margin: 0; color: #676761; font-size: 12px; }
 .proposal-meta { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 23px; color: #444440; font-size: 10px; font-weight: 700; }
 .compare-toggle { display: flex; align-items: center; border-left: 1px solid var(--line); padding: 0 17px; color: var(--muted); cursor: pointer; font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; writing-mode: vertical-rl; }
-.compare-toggle input { width: 16px; height: 16px; margin: 0 0 9px; accent-color: var(--ink); }
+.compare-toggle input { width: 16px; height: 16px; margin: 0 0 9px; accent-color: var(--ink); transform: translateY(7px); }
 .empty-state { padding: 70px 25px; text-align: center; }
 .empty-state p { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
 
