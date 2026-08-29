@@ -14,6 +14,19 @@ The prototype reflects the current agreed direction after the professor's feedba
 
 Open `index.html` in a browser. The primary prototype is static and has no build or database dependency.
 
+Public demo: https://kjshoom.github.io/ppm-infs3059/
+
+## Continue developing
+
+The main prototype is intentionally easy to extend:
+
+- `index.html` contains the page structure, copy, proposal workspace, comparison dialog, and review form.
+- `app/globals.css` contains the Toss-inspired visual system, responsive layout, and scroll-reveal motion.
+- `app.js` contains search, filters, sorting, compare selection, proposal details, and locally saved reviewer notes.
+- `public/` contains the folder visual and other static assets.
+
+Edit these files on a branch, open the page locally, and use a pull request when you want the team to review a change.
+
 For a local URL, run:
 
 ```bash
