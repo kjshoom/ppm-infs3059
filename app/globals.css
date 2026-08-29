@@ -149,15 +149,15 @@ a { color: inherit; text-decoration: none; }
 .reveal { opacity: 1; }
 body.js-ready .reveal {
   opacity: 0;
-  transform: translateY(42px);
-  transition: opacity 420ms cubic-bezier(.22, 1, .36, 1), transform 420ms cubic-bezier(.22, 1, .36, 1);
+  transform: translateY(24px);
+  transition: opacity 300ms cubic-bezier(.22, 1, .36, 1), transform 300ms cubic-bezier(.22, 1, .36, 1);
 }
 body.js-ready .reveal.is-visible { opacity: 1; transform: translateY(0); }
 body.js-ready .reveal--hero { transition-delay: 90ms; }
 body.js-ready .reveal--copy { transition-delay: 180ms; }
 body.js-ready .reveal--folder { transform: translate(-50%, calc(-50% + 64px)); transition-delay: 180ms; }
 body.js-ready .reveal--folder.is-visible { transform: translate(-50%, -50%); }
-body.js-ready .reveal-group.is-visible > .reveal { transition-delay: 0ms; }
+body.js-ready .reveal-group.is-visible .reveal { transition-delay: 0ms; }
 
 @media (prefers-reduced-motion: reduce) {
   body.js-ready .reveal,
