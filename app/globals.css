@@ -101,54 +101,40 @@ a { color: inherit; text-decoration: none; }
   left: 50%;
   top: 52%;
   z-index: 1;
-  width: min(58vw, 820px);
-  aspect-ratio: 1.58 / 1;
+  width: min(62vw, 900px);
+  aspect-ratio: 1720 / 914;
   transform: translate(-50%, -50%);
   perspective: 1100px;
 }
 
-.glass-folder {
+.folder-visual {
   position: absolute;
   inset: 0;
-  overflow: hidden;
-  border: 1px solid rgba(161,123,0,.43);
-  border-radius: 24px 44px 28px 22px;
-  background:
-    linear-gradient(118deg, rgba(255,255,255,.32), rgba(255,235,55,.14) 32%, rgba(255,219,27,.28) 76%, rgba(255,255,255,.15)),
-    rgba(255,228,38,.08);
-  box-shadow:
-    inset 0 1px 1px rgba(255,255,255,.95),
-    inset 18px -16px 34px rgba(255,210,0,.13),
-    0 28px 58px rgba(109,93,0,.16),
-    -3px 0 0 rgba(117,255,209,.16),
-    4px 0 0 rgba(161,95,255,.11);
-  padding: 11%;
-  backdrop-filter: blur(8px) saturate(165%) contrast(1.06);
-  clip-path: polygon(0 17%, 24% 17%, 30% 0, 48% 0, 56% 10%, 100% 22%, 100% 100%, 0 100%);
-  transform-style: preserve-3d;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  opacity: .78;
+  filter: saturate(1.08) brightness(1.05);
 }
 
-.glass-folder::before {
+.folder-label {
   position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(105deg, transparent 0 28%, rgba(255,255,255,.55) 31%, transparent 35%),
-    linear-gradient(180deg, rgba(255,255,255,.38), transparent 18% 80%, rgba(196,151,0,.18));
-  mix-blend-mode: screen;
-  content: "";
+  left: 50%;
+  top: 58%;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(-50%, -50%) rotate(-5deg);
+  color: rgba(28,24,4,.83);
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(255,255,255,.5);
 }
 
-.glass-folder::after {
-  position: absolute;
-  inset: 17% 2% auto;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.98), rgba(126,255,221,.5), transparent);
-  filter: blur(.25px);
-  content: "";
-}
-
-.glass-folder--back { transform: rotateX(6deg) rotateY(-8deg) rotateZ(9deg) translate(9%, -11%); opacity: .73; }
-.glass-folder--front { transform: rotateX(-3deg) rotateY(6deg) rotateZ(-5deg) translate(-4%, 5%); opacity: .86; }
+.folder-label strong { font-size: clamp(44px, 7vw, 92px); font-weight: 900; letter-spacing: -.1em; line-height: .82; }
+.folder-label small { margin-top: 14px; font-size: clamp(8px, .8vw, 12px); font-weight: 800; letter-spacing: .16em; }
 
 .hero-bottom { display: grid; grid-template-columns: minmax(240px, 450px) 1fr; align-items: end; gap: 30px; }
 .hero-bottom p { margin: 0; font-size: clamp(15px, 1.35vw, 20px); letter-spacing: -.025em; }
@@ -166,7 +152,8 @@ a { color: inherit; text-decoration: none; }
   .hero-stage { min-height: 570px; }
   .hero-title { font-size: clamp(60px, 20vw, 112px); line-height: .78; }
   .folder-scene { top: 52%; width: min(87vw, 610px); }
-  .glass-folder { border-radius: 12px 28px 18px 16px; }
+  .folder-label strong { font-size: clamp(42px, 12vw, 72px); }
+  .folder-label small { font-size: 8px; }
   .hero-bottom { grid-template-columns: 1fr auto; }
   .hero-meta span:last-child { display: none; }
 }
