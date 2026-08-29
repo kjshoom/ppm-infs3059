@@ -215,8 +215,7 @@ body.js-ready .reveal-group.is-visible .reveal { transition-delay: 0ms; }
 .principle-card--acid h3 { max-width: 310px; }
 .principle-card--dark h3 { max-width: 520px; font-size: clamp(30px, 3.5vw, 54px); }
 .card-index { position: absolute; right: 30px; top: 26px; z-index: 3; font-size: 11px; font-weight: 800; }
-.big-number { margin-top: 28px; font-size: clamp(90px, 11vw, 180px); font-weight: 900; letter-spacing: -.11em; line-height: .8; }
-.principle-card small { margin-top: 12px; font-size: 12px; font-weight: 700; }
+.principle-card small { display: block; max-width: 290px; margin-top: 22px; font-size: 13px; font-weight: 650; line-height: 1.35; }
 
 .orbit-mark { position: absolute; left: 50%; top: 41%; width: min(70%, 600px); aspect-ratio: 1; transform: translate(-50%, -50%); }
 .orbit-mark::before { position: absolute; inset: 19%; border-radius: 50%; background: var(--yellow); box-shadow: 0 0 80px rgba(255,233,52,.38); content: ""; }

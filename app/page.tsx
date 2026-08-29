@@ -194,8 +194,8 @@ export default function Home() {
           <section className="scope-card" id="scope" aria-labelledby="scope-heading">
             <div className="section-heading scope-heading">
               <div>
-                <p className="eyebrow">Product focus</p>
-                <h2 id="scope-heading">Focused by design</h2>
+                <p className="eyebrow">Project Portfolio Management</p>
+                <h2 id="scope-heading">One clear view for better project decisions.</h2>
               </div>
               <p>
                 This interface keeps the review focused on the information and signals that
