@@ -1,0 +1,44 @@
+# PPM Review — Portfolio UI & Functional Prototype
+
+A focused UI/UX prototype for Team Only 5's INFS3059 project. The landing page uses a bold editorial portfolio treatment, while the review workspace follows a search–filter–list–detail pattern.
+
+The prototype reflects the current agreed direction after the professor's feedback:
+
+- focus on IT project proposals;
+- prioritise the decision-support framework;
+- identify missing proposal information;
+- support, rather than replace, human judgement; and
+- exclude scoring rules, weights, and approval automation until the team agrees on them.
+
+## Open the prototype
+
+Open `index.html` in a browser. The primary prototype is static and has no build or database dependency.
+
+For a local URL, run:
+
+```bash
+python3 -m http.server 4173
+```
+
+Then open `http://127.0.0.1:4173/`.
+
+## Working interactions
+
+- Search proposals by project, owner, category, or description.
+- Filter by missing information, manual review, or ready state.
+- Sort by update order, project title, or number of information gaps.
+- Select a proposal to inspect its information and illustrative review pathway.
+- Compare up to three proposals side by side.
+- Save reviewer notes locally in the current browser.
+
+The sample pathways are discussion starters only. The prototype does not include final scores, weights, ranking, approval, or rejection logic.
+
+## Current scope
+
+Included: structured proposal review, information-gap warnings, human-led review, and sample data for testing.
+
+Excluded: final criteria scores or weights, ROI calculations, live production deployment, enterprise-system integration, external database integration, and automated final decisions.
+
+## Editable design
+
+Figma: https://www.figma.com/design/tUSOosUXvR7HbQx3P4Axpj
