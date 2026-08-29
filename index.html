@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f3ff45" />
+    <meta name="description" content="A human-led decision-support workspace for reviewing IT project proposals." />
+    <meta property="og:title" content="PPM Review — IT Project Proposal Review" />
+    <meta property="og:description" content="A human-led decision-support workspace for reviewing IT project proposals." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="public/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="PPM Review — IT Project Proposal Review" />
+    <meta name="twitter:description" content="Search, compare, and prepare IT project proposals for human review." />
+    <meta name="twitter:image" content="public/og.png" />
+    <title>PPM Review — IT Project Proposal Review</title>
+    <link rel="icon" href="public/favicon.svg" />
+    <link rel="stylesheet" href="app/globals.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href="#top" aria-label="PPM Review home">
+        <span class="wordmark-dot"></span>
+        <span>PPM / REVIEW</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#approach">Approach</a>
+        <a href="#workspace">Review workspace</a>
+        <a href="#scope">Scope</a>
+      </nav>
+      <a class="header-cta" href="#workspace">Open workspace <span>↘</span></a>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-meta" aria-label="Project information">
+          <span>INFS3059 · TEAM ONLY 5</span>
+          <span>IT PROJECTS · HUMAN-LED</span>
+        </div>
+
+        <div class="hero-stage">
+          <h1 class="hero-title" id="hero-title">
+            <span>PROJECT</span>
+            <span>PROPOSAL</span>
+            <span>REVIEW</span>
+          </h1>
+
+          <div class="folder-scene" aria-hidden="true">
+            <div class="glass-folder glass-folder--back">
+              <span>FRAMEWORK / FIRST</span>
+            </div>
+            <div class="glass-folder glass-folder--front">
+              <span>PPM / REVIEW</span>
+              <small>DECISION SUPPORT · 2026</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-bottom">
+          <p>
+            A clear place to find missing information, understand uncertainty, and prepare an
+            IT project proposal for human review.
+          </p>
+          <a class="circle-link" href="#approach" aria-label="Explore the approach">↓</a>
+        </div>
+      </section>
+
+      <section class="story-section" id="approach" aria-labelledby="approach-title">
+        <div class="story-intro">
+          <p class="section-kicker">01 · The approach</p>
+          <h2 id="approach-title">The framework comes before the software.</h2>
+          <p class="story-copy">
+            The first version stays deliberately narrow: IT project proposals, a structured
+            completeness check, and clear signals for a human reviewer.
+          </p>
+        </div>
+
+        <div class="principle-grid">
+          <article class="principle-card principle-card--wide">
+            <span class="card-index">01</span>
+            <div class="orbit-mark" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div>
+              <p>Framework first</p>
+              <h3>Agree on the review logic before automating it.</h3>
+            </div>
+          </article>
+          <article class="principle-card principle-card--acid">
+            <span class="card-index">02</span>
+            <div>
+              <p>Focused scope</p>
+              <h3>IT projects only</h3>
+              <span class="big-number">01</span>
+              <small>manageable project category</small>
+            </div>
+          </article>
+          <article class="principle-card principle-card--dark">
+            <span class="card-index">03</span>
+            <div>
+              <p>Human-led</p>
+              <h3>Signals support the reviewer. People make the decision.</h3>
+            </div>
+          </article>
+        </div>
+
+        <div class="flow-strip" aria-label="Proposed review flow">
+          <div><span>01</span><strong>Check information</strong></div>
+          <i aria-hidden="true">→</i>
+          <div><span>02</span><strong>Flag gaps</strong></div>
+          <i aria-hidden="true">→</i>
+          <div><span>03</span><strong>Route for review</strong></div>
+        </div>
+      </section>
+
+      <section class="workspace-section" id="workspace" aria-labelledby="workspace-title">
+        <div class="workspace-heading">
+          <p class="section-kicker">02 · Functional prototype</p>
+          <div>
+            <h2 id="workspace-title">Find the proposal that needs your attention.</h2>
+            <p>
+              Search sample IT proposals, filter by readiness signal, and open a structured
+              reviewer view. Pathways shown here are discussion starters—not final policy.
+            </p>
+          </div>
+        </div>
+
+        <div class="review-app">
+          <div class="search-row">
+            <label class="search-box">
+              <span aria-hidden="true">⌕</span>
+              <input id="proposal-search" type="search" placeholder="Search by project, owner, or keyword" autocomplete="off" />
+              <kbd>⌘ K</kbd>
+            </label>
+            <div class="filter-row" role="group" aria-label="Filter proposals">
+              <button class="filter-chip is-active" type="button" data-filter="all">All</button>
+              <button class="filter-chip" type="button" data-filter="missing">Missing info</button>
+              <button class="filter-chip" type="button" data-filter="manual">Manual review</button>
+              <button class="filter-chip" type="button" data-filter="ready">Ready</button>
+            </div>
+          </div>
+
+          <div class="review-layout">
+            <section class="results-panel" aria-labelledby="results-title">
+              <div class="panel-bar">
+                <p id="results-title"><strong id="result-count">6</strong> sample proposals</p>
+                <label>
+                  <span class="sr-only">Sort proposals</span>
+                  <select id="sort-select">
+                    <option value="updated">Recently updated</option>
+                    <option value="title">Project name</option>
+                    <option value="gaps">Most gaps</option>
+                  </select>
+                </label>
+              </div>
+              <div class="proposal-list" id="proposal-list" aria-live="polite"></div>
+              <div class="empty-state" id="empty-state" hidden>
+                <strong>No proposals found.</strong>
+                <p>Try another keyword or remove a filter.</p>
+              </div>
+            </section>
+
+            <aside class="detail-panel" id="proposal-detail" aria-live="polite">
+              <div class="detail-empty">Select a proposal to view its review signals.</div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="scope-section" id="scope" aria-labelledby="scope-title">
+        <div class="scope-title-row">
+          <p class="section-kicker">03 · Scope boundary</p>
+          <h2 id="scope-title">Small enough to finish. Strong enough to matter.</h2>
+        </div>
+        <div class="scope-grid">
+          <article class="scope-card scope-card--in">
+            <span>IN</span>
+            <h3>This prototype includes</h3>
+            <ul>
+              <li>IT project proposals only</li>
+              <li>Structured information review</li>
+              <li>Missing-information warnings</li>
+              <li>Illustrative review pathways</li>
+              <li>Human-led decision support</li>
+            </ul>
+          </article>
+          <article class="scope-card scope-card--out">
+            <span>OUT</span>
+            <h3>Not decided or not included</h3>
+            <ul>
+              <li>Final criteria weights or scores</li>
+              <li>ROI and financial-return calculation</li>
+              <li>Automated approval or rejection</li>
+              <li>Enterprise and external database integration</li>
+              <li>Live production deployment</li>
+            </ul>
+          </article>
+        </div>
+        <p class="scope-note">
+          Next team discussion: literature-backed criteria, required proposal fields, and the
+          conditions for each review pathway.
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <p>PPM / REVIEW</p>
+        <h2>Better questions before bigger software.</h2>
+      </div>
+      <div class="footer-meta">
+        <span>Team Only 5 · INFS3059</span>
+        <span>Meeting prototype · 2026</span>
+      </div>
+    </footer>
+
+    <div class="compare-bar" id="compare-bar" hidden>
+      <div><strong id="compare-count">0</strong><span>selected to compare</span></div>
+      <div>
+        <button type="button" class="text-button" id="clear-compare">Clear</button>
+        <button type="button" class="solid-button" id="open-compare">Compare proposals</button>
+      </div>
+    </div>
+
+    <dialog class="modal" id="compare-dialog">
+      <div class="modal-header">
+        <div><p class="section-kicker">Side-by-side view</p><h2>Proposal comparison</h2></div>
+        <button class="icon-button" type="button" data-close-dialog aria-label="Close comparison">×</button>
+      </div>
+      <div class="compare-grid" id="compare-grid"></div>
+    </dialog>
+
+    <dialog class="modal review-dialog" id="review-dialog">
+      <div class="modal-header">
+        <div><p class="section-kicker">Reviewer workspace</p><h2 id="review-dialog-title">Review notes</h2></div>
+        <button class="icon-button" type="button" data-close-review aria-label="Close review">×</button>
+      </div>
+      <div class="review-form">
+        <div class="review-reminder"><strong>Human decision only</strong><span>No approval or ranking is generated by this prototype.</span></div>
+        <label>Reviewer note<textarea id="review-notes" rows="6" placeholder="Record questions, concerns, or information to request…"></textarea></label>
+        <button type="button" class="solid-button" id="save-note">Save note locally</button>
+        <p class="save-message" id="save-message" role="status"></p>
+      </div>
+    </dialog>
+
+    <script src="app.js"></script>
+  </body>
+</html>
