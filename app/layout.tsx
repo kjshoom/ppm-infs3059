@@ -4,11 +4,11 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'PPM — Project Portfolio Management',
   description:
-    'A focused meeting prototype for structured, human-led review of IT project proposals.',
+    'A structured workspace for clear, human-led review of IT project proposals.',
   openGraph: {
     title: 'PPM — Project Portfolio Management',
     description:
-      'A focused meeting prototype for structured, human-led review of IT project proposals.',
+      'A structured workspace for clear, human-led review of IT project proposals.',
     url: 'https://kjshoom.github.io/ppm-review-meeting-prototype/',
     type: 'website',
     images: ['https://kjshoom.github.io/ppm-review-meeting-prototype/public/og.png'],
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'PPM — Project Portfolio Management',
     description:
-      'A focused meeting prototype for structured, human-led review of IT project proposals.',
+      'A structured workspace for clear, human-led review of IT project proposals.',
     images: ['https://kjshoom.github.io/ppm-review-meeting-prototype/public/og.png'],
   },
 };

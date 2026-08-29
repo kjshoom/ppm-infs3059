@@ -288,7 +288,7 @@ document.querySelector("[data-close-review]").addEventListener("click", () => re
 document.querySelector("#save-note").addEventListener("click", () => {
   const id = reviewDialog.dataset.proposalId;
   localStorage.setItem(`ppm-note-${id}`, document.querySelector("#review-notes").value);
-  document.querySelector("#save-message").textContent = "Saved in this browser for the meeting prototype.";
+  document.querySelector("#save-message").textContent = "Saved in this browser.";
 });
 
 [compareDialog, reviewDialog].forEach((dialog) => {
@@ -307,3 +307,18 @@ document.addEventListener("keydown", (event) => {
 renderResults();
 renderDetail();
 renderCompareBar();
+
+document.body.classList.add("js-ready");
+const revealItems = document.querySelectorAll(".reveal");
+if ("IntersectionObserver" in window) {
+  const revealObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add("is-visible");
+      observer.unobserve(entry.target);
+    });
+  }, { threshold: 0.14, rootMargin: "0px 0px -8%" });
+  revealItems.forEach((item) => revealObserver.observe(item));
+} else {
+  revealItems.forEach((item) => item.classList.add("is-visible"));
+}

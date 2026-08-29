@@ -55,7 +55,7 @@ export default function Home() {
         </a>
 
         <nav aria-label="Prototype sections">
-          <p className="nav-label">Prototype</p>
+          <p className="nav-label">Product</p>
           <a className="nav-item nav-item--active" href="#overview" aria-current="page">
             <span>01</span> Overview
           </a>
@@ -63,7 +63,7 @@ export default function Home() {
             <span>02</span> Proposal check
           </a>
           <a className="nav-item" href="#scope">
-            <span>03</span> Scope boundary
+            <span>03</span> Product focus
           </a>
         </nav>
 
@@ -83,14 +83,14 @@ export default function Home() {
           </a>
           <p>INFS3059 · 2026</p>
           <a className="scope-link" href="#scope">
-            View agreed scope <span aria-hidden="true">↘</span>
+            View product focus <span aria-hidden="true">↘</span>
           </a>
         </header>
 
         <div className="content">
           <section className="intro" id="overview">
             <div>
-              <p className="eyebrow">Meeting prototype · 30 Aug 2026</p>
+              <p className="eyebrow">PPM · Product experience</p>
               <h1>Project portfolio management, made clearer.</h1>
               <p className="lede">
                 A focused interface for checking whether an IT project proposal is ready for
@@ -107,7 +107,7 @@ export default function Home() {
           <section className="process-card" aria-labelledby="process-heading">
             <div className="section-heading">
               <div>
-                <p className="eyebrow">Agreed product direction</p>
+                <p className="eyebrow">How it works</p>
                 <h2 id="process-heading">One simple review flow</h2>
               </div>
               <span className="status-pill">Focused scope</span>
@@ -131,7 +131,7 @@ export default function Home() {
             <article className="review-card">
               <div className="section-heading compact">
                 <div>
-                  <p className="eyebrow">Illustrative example</p>
+                <p className="eyebrow">Example review</p>
                   <h2>Proposal readiness check</h2>
                 </div>
                 <span className="attention-pill">Needs attention</span>
@@ -194,12 +194,12 @@ export default function Home() {
           <section className="scope-card" id="scope" aria-labelledby="scope-heading">
             <div className="section-heading scope-heading">
               <div>
-                <p className="eyebrow">Prototype boundary</p>
-                <h2 id="scope-heading">Deliberately small for this meeting</h2>
+                <p className="eyebrow">Product focus</p>
+                <h2 id="scope-heading">Focused by design</h2>
               </div>
               <p>
-                This interface shows only the direction already supported by the proposal and
-                the professor&apos;s feedback.
+                This interface keeps the review focused on the information and signals that
+                help people make a clear decision.
               </p>
             </div>
 
@@ -224,7 +224,7 @@ export default function Home() {
           </section>
 
           <footer>
-            <p>PPM Decision-Support Framework · UI/UX meeting prototype</p>
+            <p>PPM Decision-Support Framework · Product experience</p>
             <p>INFS3059 · Canberra · 2026</p>
           </footer>
         </div>

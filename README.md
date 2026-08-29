@@ -1,6 +1,6 @@
-# PPM — Project Portfolio Management UI & Functional Prototype
+# PPM — Project Portfolio Management
 
-A focused UI/UX prototype for INFS3059 project. The landing page uses a bold editorial portfolio treatment, while the review workspace follows a search–filter–list–detail pattern.
+A focused web experience for the INFS3059 project. The landing page uses a bold editorial portfolio treatment, while the review workspace follows a search–filter–list–detail pattern.
 
 The prototype reflects the current agreed direction after the professor's feedback:
 
@@ -31,7 +31,7 @@ Then open `http://127.0.0.1:4173/`.
 - Compare up to three proposals side by side.
 - Save reviewer notes locally in the current browser.
 
-The sample pathways are discussion starters only. The prototype does not include final scores, weights, ranking, approval, or rejection logic.
+The sample pathways are illustrative. The site does not include final scores, weights, ranking, approval, or rejection logic.
 
 ## Current scope
 
