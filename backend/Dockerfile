@@ -8,5 +8,7 @@ RUN mvn -q package
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=build /app/target/ppm-account-api-0.1.0.jar app.jar
+RUN useradd --system --uid 10001 --create-home ppm
+USER ppm
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-XX:+UseSerialGC", "-jar", "/app/app.jar"]

@@ -28,21 +28,33 @@ Account settings also lets a signed-in user permanently delete their PPM sign-in
 
 ## Shared account API
 
-The API uses Java 17+, Spring Boot, and PostgreSQL. GitHub Pages serves the frontend as static files; it does not run the Java server or provide an application database. Deploy the API and PostgreSQL separately, then set the public API origin in `api-config.js`:
+The API uses Java 17+, Spring Boot, and PostgreSQL. It stores account credentials (as BCrypt hashes), profile details, and revocable sign-in sessions. GitHub Pages serves the frontend as static files; it does not run the Java server or provide an application database.
+
+Proposal, review, organisation, scenario, and portfolio data are still saved in the current browser. The account API does not sync that workspace data between devices.
+
+### Deploy the API
+
+The repository includes a Render Blueprint in `render.yaml` and a production Spring profile. The intended no-cost student setup is a Render free web service plus a Supabase free PostgreSQL project. Expect the API to sleep after 15 minutes without traffic and take about a minute to wake; Supabase may pause a free project after a week of low database activity. The free database has no automatic backups. This is a demonstration setup, not a production service or a place for sensitive credentials. Do not add a payment method unless the team explicitly agrees to paid hosting, and check the providers’ current limits before creating resources.
+
+1. Create a Supabase project and save the database password somewhere private. In Supabase, open **Project Settings → Database → Connection string**, choose the **Session pooler**, and copy its host, port, database, and username. Use port `5432` and an SSL JDBC URL, for example `jdbc:postgresql://<pooler-host>:5432/postgres?sslmode=require`; use the actual values and pooler username shown for your project.
+2. In Render, create a new **Blueprint** from `https://github.com/kjshoom/ppm-infs3059`. Render reads `render.yaml` and asks for the three database variables. Enter the JDBC URL, pooler username, and database password. Do not put those values in this repository or in `api-config.js`.
+3. Wait for the Render deploy to become healthy. Check `https://<your-render-service>.onrender.com/api/health`; it should return `{"status":"ok"}`.
+4. Put the public Render service origin (without `/api`) in `api-config.js` and publish that one-line frontend configuration:
 
 ```js
-window.PPM_CONFIG = Object.freeze({ apiBaseUrl: "https://your-api.example" });
+window.PPM_CONFIG = Object.freeze({ apiBaseUrl: "https://your-render-service.onrender.com" });
 ```
 
-Configure these server environment variables in the API host (never commit production credentials):
+The Blueprint configures these server variables (never commit the database credentials):
 
-- `SPRING_DATASOURCE_URL` — PostgreSQL JDBC URL
+- `SPRING_PROFILES_ACTIVE=production` — requires the external PostgreSQL settings; it will not fall back to local credentials
+- `SPRING_DATASOURCE_URL` — PostgreSQL JDBC URL for the provider's session pooler, with `sslmode=require`
 - `SPRING_DATASOURCE_USERNAME`
 - `SPRING_DATASOURCE_PASSWORD`
-- `PPM_ALLOWED_ORIGINS` — `https://kjshoom.github.io` and any local development origin, comma-separated
+- `PPM_ALLOWED_ORIGINS` — the GitHub Pages origin and local development origins
 - `PPM_SESSION_HOURS` — sign-in token lifetime (default: 168 hours)
 
-Run the backend tests with `cd backend && mvn test`. The integration tests use an in-memory database. Existing browser-only accounts are not migrated; create an account again after the API is configured. This prototype API does not yet include email verification, password reset, distributed rate limiting, or production monitoring, so it should not be used for sensitive accounts.
+When the API URL is set, account registration, sign-in, profile edits, sign-out, and account deletion use the shared database, so the same account can be used from another device. Existing browser-only accounts are not migrated; create an account again after the API is connected. Run the backend tests with `cd backend && mvn test`; the integration tests use an in-memory database. This student prototype does not include email verification, password reset, distributed rate limiting, backups, or production monitoring, so it should not be used for sensitive accounts.
 
 ## Main files
 
