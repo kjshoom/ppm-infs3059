@@ -375,7 +375,6 @@ const state = {
   activeView: TEST_MODE ? "tests" : "manager",
   accounts: storedAccounts,
   activeAccountId: storedAccounts.some((account) => account.id === storedActiveAccountId) ? storedActiveAccountId : "",
-  editingAccountId: storedAccounts.some((account) => account.id === storedActiveAccountId) ? storedActiveAccountId : "",
   query: "",
   objective: "all",
   feasibility: 0,
@@ -1353,19 +1352,8 @@ function submitProposal(event) {
   setActiveView("reviewer");
 }
 
-function accountId() {
-  if (window.crypto?.randomUUID) return `account-${window.crypto.randomUUID()}`;
-  return `account-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-}
-
 function activeAccount() {
   return state.accounts.find((account) => account.id === state.activeAccountId) || null;
-}
-
-function persistAccounts() {
-  storage.set(STORAGE.accounts, JSON.stringify(state.accounts));
-  if (state.activeAccountId) storage.set(STORAGE.activeAccount, JSON.stringify(state.activeAccountId));
-  else storage.remove(STORAGE.activeAccount);
 }
 
 function renderSidebarAccountSummary() {
@@ -1375,60 +1363,6 @@ function renderSidebarAccountSummary() {
   container.innerHTML = account
     ? `<span>Signed in as</span><strong>${escapeHTML(account.displayName)}</strong><small>${escapeHTML(account.role)}</small>`
     : '<span>Account</span><strong>Not signed in</strong><small>Use the profile menu above</small>';
-}
-
-function renderAccountWorkspace() {
-  const currentContainer = $("#current-account-summary");
-  if (!currentContainer) return;
-  const sharedAccount = Boolean(window.PPMAuth?.apiBase());
-  const current = activeAccount();
-  currentContainer.innerHTML = current
-    ? `<div class="current-account-card"><span class="account-status">${sharedAccount ? "Shared PPM account" : "Signed in on this browser"}</span><strong>${escapeHTML(current.displayName)}</strong><p>${escapeHTML(current.role)}</p><small>Use the profile circle above to manage this session.</small></div>`
-    : `<div class="account-empty"><strong>You are not signed in</strong><p>${sharedAccount ? "Sign in to your shared PPM account from this device." : "Create a local prototype account or sign in from this browser."}</p><a class="outline-button" href="./login.html?mode=signup&amp;return=workplace.html">${sharedAccount ? "Create or sign in" : "Create an account"}</a></div>`;
-  const storageSubtitle = $("#account-storage-subtitle");
-  const storageSummary = $("#account-storage-summary");
-  if (sharedAccount) {
-    if (storageSubtitle) storageSubtitle.textContent = "Shared sign-in is connected";
-    if (storageSummary) storageSummary.innerHTML = "<p>Account names and sign-in credentials are verified by the shared service. You can use the same account from another device. Proposal, review, and portfolio data are still stored in this browser.</p>";
-  } else {
-    if (storageSubtitle) storageSubtitle.textContent = "No shared account service is configured";
-    if (storageSummary) storageSummary.innerHTML = '<p>Until a shared account service is connected, accounts are saved in this browser only. Project and portfolio information is also stored in this browser.</p><a class="outline-button" href="./login.html?mode=signup&amp;return=workplace.html">Create an account</a>';
-  }
-  renderSidebarAccountSummary();
-}
-
-function saveAccount(event) {
-  event.preventDefault();
-  const form = event.currentTarget;
-  if (!form.reportValidity()) return;
-  const values = new FormData(form);
-  const displayName = String(values.get("displayName") || "").trim();
-  const role = String(values.get("accountRole") || "");
-  if (!displayName || !ACCOUNT_ROLES.includes(role)) return;
-
-  const editingIndex = state.accounts.findIndex((account) => account.id === state.editingAccountId);
-  let saved;
-  if (editingIndex >= 0) {
-    saved = { ...state.accounts[editingIndex], displayName, role };
-    state.accounts.splice(editingIndex, 1, saved);
-  } else {
-    const existing = state.accounts.find((account) => account.displayName.toLocaleLowerCase() === displayName.toLocaleLowerCase() && account.role === role);
-    saved = existing || { id: accountId(), displayName, role, createdAt: new Date().toISOString() };
-    if (!existing) state.accounts.push(saved);
-  }
-  state.activeAccountId = saved.id;
-  state.editingAccountId = saved.id;
-  persistAccounts();
-  renderAccountWorkspace();
-  setActiveView("organisation");
-}
-
-function prepareNewAccount() {
-  state.editingAccountId = "";
-  const form = $("#account-form");
-  form?.reset();
-  $("#account-message").textContent = "Enter another browser-only profile. Existing accounts and portfolio data will remain saved.";
-  $("#account-display-name")?.focus();
 }
 
 function renderAll() {
@@ -1863,13 +1797,12 @@ function openComparison() {
 }
 
 function setActiveView(view) {
-  const knownViews = ["account", "organisation", "proposer", "reviewer", "manager", "shortlist", "comparison", "insights", "scenarios", "decisions", "reports", "tests"];
+  const knownViews = ["organisation", "proposer", "reviewer", "manager", "shortlist", "comparison", "insights", "scenarios", "decisions", "reports", "tests"];
   if (!knownViews.includes(view)) return;
   state.activeView = view;
   $$('[data-workspace-view]').forEach((section) => { section.hidden = section.dataset.workspaceView !== view; });
   $$('[data-workspace-view-button]').forEach((button) => { if (button.dataset.workspaceViewButton === view) button.setAttribute("aria-current", "page"); else button.removeAttribute("aria-current"); });
   const testButton = $("#open-test-mode"); if (testButton) testButton.setAttribute("aria-pressed", String(view === "tests"));
-  if (view === "account") renderAccountWorkspace();
   if (view === "manager") renderAll();
   if (view === "reviewer") renderReviewQueue();
   if (view === "organisation") renderOrganisationForm();

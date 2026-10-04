@@ -22,7 +22,7 @@ The role tabs demonstrate the workflow; they are not permission controls. The pr
 
 Account sign-in can run in browser-only mode or use the Java API in `backend/`. In browser-only mode, accounts stay in that browser. When a shared API is configured, account credentials and profile details are stored by the API and can be used to sign in from another device. Proposal, review, organisation, and portfolio data still stay in the current browser.
 
-After signing in, open the profile circle and choose **Manage your PPM account** to update the name, email, or workspace role. The role is a prototype preference, not an access-control permission.
+After signing in, open the profile circle and choose **Manage your PPM account** to update the name, email, or workspace role. The role is a prototype preference, not an access-control permission. Account settings remain outside the workplace workflow; the workplace sidebar no longer has an Account screen.
 
 Account settings also lets a signed-in user permanently delete their PPM sign-in and profile after confirming the action. Proposals and portfolio data are separate browser-stored prototype data and are not removed with the account.
 

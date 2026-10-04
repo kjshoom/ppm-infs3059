@@ -29,7 +29,7 @@
       source.querySelectorAll("dialog.modal").forEach((dialog) => document.body.append(dialog.cloneNode(true)));
       loading.hidden = true;
 
-      await loadScript("./app.js?v=20261004-workplace-v1");
+      await loadScript("./app.js?v=20261004-workplace-v2");
       await loadScript("./public/test-feedback.js?v=20261004-workplace-v1");
       await loadScript("./guided-tour.js?v=20261004-tour-v2");
       window.PPMTour?.init();

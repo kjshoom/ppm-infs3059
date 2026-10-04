@@ -116,7 +116,6 @@
             <aside class="workspace-sidebar" aria-label="Portfolio workspace navigation">
               <a class="workspace-brand" href="./index.html" aria-label="PPM workspace home"><span class="workspace-brand-mark" aria-hidden="true"></span><span><strong>PPM</strong><small>Project Portfolio Management</small></span></a>
               <nav class="workspace-nav" aria-label="Portfolio workspace">
-                <button type="button" data-workspace-view-button="account"><span>00</span>Account</button>
                 <p class="workspace-nav-group-label">Planning</p>
                 <button type="button" data-workspace-view-button="organisation"><span>01</span>Investment Context</button>
                 <button type="button" data-workspace-view-button="proposer"><span>02</span>Propose Project</button>
@@ -142,24 +141,6 @@
             <div><strong>Test workspace</strong><span>Temporary test data only — your normal proposals are unchanged.</span></div>
             <div><button type="button" class="text-button" id="reset-test-data">Reset test data</button><a class="text-button" id="exit-test-mode" href="./workplace.html">Exit test mode</a></div>
           </aside>
-
-          <section class="workspace-view account-view" data-workspace-view="account" hidden aria-labelledby="account-title">
-            <div class="view-heading account-heading">
-              <p class="section-kicker">Your account</p>
-              <h3 id="account-title">Your PPM profile.</h3>
-              <p>Use the profile menu in the upper corner to sign in, create an account, or sign out.</p>
-            </div>
-            <div class="account-layout">
-              <section class="account-panel account-current" aria-labelledby="current-account-title">
-                <div class="account-panel-heading"><span aria-hidden="true">●</span><div><h4 id="current-account-title">Signed-in profile</h4><p>Your name and role for this prototype.</p></div></div>
-                <div id="current-account-summary" aria-live="polite"></div>
-              </section>
-              <aside class="account-panel account-current" aria-labelledby="account-storage-title">
-                <div class="account-panel-heading"><span aria-hidden="true">i</span><div><h4 id="account-storage-title">About account access</h4><p id="account-storage-subtitle">Account service status</p></div></div>
-                <div class="account-storage-note" id="account-storage-summary"><p>Until a shared account service is connected, accounts are saved in this browser only. Project and portfolio information is also stored in this browser.</p><a class="outline-button" href="./login.html?mode=signup&amp;return=workplace.html">Create an account</a></div>
-              </aside>
-            </div>
-          </section>
 
           <section class="workspace-view setup-view" data-workspace-view="organisation" hidden aria-labelledby="organisation-title">
             <div class="view-heading investment-context-heading"><p class="section-kicker">Investment Context</p><h3 id="organisation-title">Set the context for this portfolio cycle.</h3><p>Record the scope, strategic objectives, budget, and staff capacity used throughout the current portfolio review.</p></div>
