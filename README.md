@@ -22,6 +22,8 @@ The role tabs demonstrate the workflow; they are not permission controls. The pr
 
 Account sign-in can run in browser-only mode or use the Java API in `backend/`. In browser-only mode, accounts stay in that browser. When a shared API is configured, account credentials and profile details are stored by the API and can be used to sign in from another device. Proposal, review, organisation, and portfolio data still stay in the current browser.
 
+After signing in, open the profile circle and choose **Manage your PPM account** to update the name, email, or workspace role. The role is a prototype preference, not an access-control permission.
+
 ## Shared account API
 
 The API uses Java 17+, Spring Boot, and PostgreSQL. GitHub Pages serves the frontend as static files; it does not run the Java server or provide an application database. Deploy the API and PostgreSQL separately, then set the public API origin in `api-config.js`:
@@ -46,5 +48,6 @@ Run the backend tests with `cd backend && mvn test`. The integration tests use a
 - `app/globals.css` — responsive visual design and motion
 - `app.js` — sample data, forms, review flow, comparison, scenarios, and local storage
 - `auth-ui.js` / `api-config.js` — sign-in UI and the optional shared-account API address
+- `account.html` — signed-in profile settings
 - `backend/` — Java account API and PostgreSQL schema
 - `docs/process-flow.md` — review process

@@ -106,7 +106,7 @@
       return;
     }
     const shared = Boolean(apiBase());
-    slot.innerHTML = `<div class="profile-control"><button class="profile-avatar" type="button" aria-label="${escapeHTML(user.name)} account" aria-expanded="false"><span>${escapeHTML(avatarName(user.name))}</span></button><section class="profile-menu" hidden aria-label="Signed-in account"><button class="profile-menu-close" type="button" aria-label="Close account menu">×</button><div class="profile-summary"><span class="profile-avatar profile-avatar-large">${escapeHTML(avatarName(user.name))}</span><div><strong>${escapeHTML(user.name)}</strong><span>${escapeHTML(user.email)}</span><small>${escapeHTML(user.role)}</small></div></div><a class="profile-menu-action" href="${authURL("login")}"><span aria-hidden="true">＋</span> Add another account</a><button class="profile-menu-action profile-signout" type="button"><span aria-hidden="true">↪</span> Sign out</button><p class="profile-menu-note">${shared ? "Account available on your other devices" : "Saved in this browser"}</p></section></div>`;
+    slot.innerHTML = `<div class="profile-control"><button class="profile-avatar" type="button" aria-label="${escapeHTML(user.name)} account" aria-expanded="false"><span>${escapeHTML(avatarName(user.name))}</span></button><section class="profile-menu" hidden aria-label="Signed-in account"><button class="profile-menu-close" type="button" aria-label="Close account menu">×</button><div class="profile-summary"><span class="profile-avatar profile-avatar-large">${escapeHTML(avatarName(user.name))}</span><div><strong>${escapeHTML(user.name)}</strong><span>${escapeHTML(user.email)}</span><small>${escapeHTML(user.role)}</small></div></div><a class="profile-menu-action" href="./account.html"><span aria-hidden="true">⚙</span> Manage your PPM account</a><a class="profile-menu-action" href="${authURL("login")}"><span aria-hidden="true">＋</span> Add another account</a><button class="profile-menu-action profile-signout" type="button"><span aria-hidden="true">↪</span> Sign out</button><p class="profile-menu-note">${shared ? "Account available on your other devices" : "Saved in this browser"}</p></section></div>`;
     const trigger = slot.querySelector(".profile-avatar[aria-expanded]");
     const menu = slot.querySelector(".profile-menu");
     const close = () => { menu.hidden = true; trigger.setAttribute("aria-expanded", "false"); };
@@ -136,7 +136,7 @@
       const user = localUser();
       syncWorkspaceProfile(user);
       slots.forEach((slot) => renderAuthSlot(slot, user));
-      return;
+      return user;
     }
     let user = null;
     let serviceUnavailable = false;
@@ -159,6 +159,84 @@
       syncWorkspaceProfile(null);
     }
     slots.forEach((slot) => renderAuthSlot(slot, user, serviceUnavailable));
+    return user;
+  }
+
+  function updateLocalProfile(user, { name, email, role }) {
+    const users = readUsers();
+    const index = users.findIndex((entry) => entry.id === user.id);
+    if (index < 0) throw new Error("This browser account could not be found. Please sign in again.");
+    if (users.some((entry) => entry.id !== user.id && entry.email.toLocaleLowerCase() === email)) {
+      throw new Error("An account with this email already exists in this browser.");
+    }
+    const updated = { ...users[index], name, email, role };
+    users.splice(index, 1, updated);
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    localStorage.setItem(ACTIVE_KEY, updated.id);
+    return { id: updated.id, name: updated.name, email: updated.email, role: updated.role, createdAt: updated.createdAt };
+  }
+
+  function initAccountPage(user) {
+    const form = $("#account-profile-form");
+    if (!form) return;
+    if (!user) {
+      window.location.replace(authURL("login", "account.html"));
+      return;
+    }
+
+    const nameField = $("#account-display-name");
+    const emailField = $("#account-email");
+    const roleField = $("#account-role");
+    const message = $("#account-message");
+    const submit = $("#account-save");
+    const avatar = $("#account-avatar");
+    const storageNote = $("#account-storage-note");
+    nameField.value = user.name;
+    emailField.value = user.email;
+    roleField.value = user.role;
+    avatar.textContent = avatarName(user.name);
+    if (storageNote) {
+      storageNote.textContent = apiBase()
+        ? "Changes are saved to your PPM account and can be used when you sign in on another device."
+        : "Changes are saved in this browser only. They will not sync to another device until a shared account service is connected.";
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+      const profile = {
+        name: nameField.value.trim(),
+        email: emailField.value.trim().toLocaleLowerCase(),
+        role: roleField.value
+      };
+      message.textContent = "";
+      message.dataset.state = "";
+      submit.disabled = true;
+      submit.textContent = "Saving…";
+      try {
+        if (profile.name.length < 2 || profile.name.length > 80) throw new Error("Enter a name between 2 and 80 characters.");
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email)) throw new Error("Enter a valid email address.");
+        if (!["Portfolio Manager", "Project Proposer", "Reviewer"].includes(profile.role)) throw new Error("Choose one of the available workspace roles.");
+        let updated;
+        if (apiBase()) {
+          const token = remoteToken();
+          if (!token) throw new Error("Your session has expired. Please sign in again.");
+          updated = await apiRequest("/api/auth/profile", { method: "PATCH", body: profile, token });
+          sessionStorage.setItem(REMOTE_USER_KEY, JSON.stringify(updated));
+        } else {
+          updated = updateLocalProfile(user, profile);
+        }
+        syncWorkspaceProfile(updated);
+        message.dataset.state = "success";
+        message.textContent = "Your account information has been updated.";
+        window.setTimeout(() => window.location.reload(), 500);
+      } catch (error) {
+        message.dataset.state = "error";
+        message.textContent = error instanceof Error ? error.message : "We couldn't save your account information.";
+        submit.disabled = false;
+        submit.textContent = "Save changes";
+      }
+    });
   }
 
   function randomHex(size) {
@@ -186,7 +264,7 @@
     if (!form) return;
     const params = new URLSearchParams(location.search);
     const requestedReturn = params.get("return") || "workplace.html";
-    const returnTo = requestedReturn === "index.html" || requestedReturn === "workplace.html" ? requestedReturn : "workplace.html";
+    const returnTo = requestedReturn === "index.html" || requestedReturn === "workplace.html" || requestedReturn === "account.html" ? requestedReturn : "workplace.html";
     const sharedAccounts = Boolean(apiBase());
     let signup = params.get("mode") === "signup";
     const title = $("#auth-title");
@@ -278,7 +356,7 @@
   window.PPMAuthReady = new Promise((resolve) => {
     const start = () => {
       initAuthPage();
-      initHeader().catch(() => {}).finally(resolve);
+      initHeader().then(initAccountPage).catch(() => {}).finally(resolve);
     };
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
     else start();

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f5f6f2" />
+    <meta name="description" content="Manage your PPM account details." />
+    <title>Your account · PPM</title>
+    <link rel="icon" href="public/favicon.svg" />
+    <link rel="stylesheet" href="app/globals.css?v=20261004-account-v1" />
+  </head>
+  <body class="account-settings-page">
+    <header class="auth-page-header">
+      <a class="wordmark" href="./index.html" aria-label="PPM home"><span class="wordmark-dot" aria-hidden="true"></span><span>PPM</span></a>
+      <div class="account-header-actions">
+        <a href="./workplace.html">The workplace <span aria-hidden="true">↗</span></a>
+        <div class="auth-slot" id="auth-slot"></div>
+      </div>
+    </header>
+    <main class="account-settings-main">
+      <div class="account-settings-heading">
+        <p class="section-kicker">Your PPM account</p>
+        <h1>Account settings</h1>
+        <p>Keep your profile and workspace role up to date.</p>
+      </div>
+      <section class="account-settings-card" aria-labelledby="profile-heading">
+        <div class="account-profile-identity">
+          <span class="profile-avatar profile-avatar-large account-settings-avatar" id="account-avatar" aria-hidden="true">PPM</span>
+          <div><h2 id="profile-heading">Personal information</h2><p>Edit the details shown in your profile menu and workplace.</p></div>
+        </div>
+        <form id="account-profile-form" class="account-profile-form">
+          <label class="auth-field">Full name
+            <input id="account-display-name" name="name" autocomplete="name" required minlength="2" maxlength="80" />
+          </label>
+          <label class="auth-field">Email address
+            <input id="account-email" name="email" type="email" autocomplete="email" required maxlength="254" />
+          </label>
+          <label class="auth-field">Workspace role
+            <select id="account-role" name="role" required>
+              <option>Portfolio Manager</option>
+              <option>Project Proposer</option>
+              <option>Reviewer</option>
+            </select>
+          </label>
+          <p class="account-role-note">Role is a prototype preference for the project workflow; it does not grant or restrict permissions.</p>
+          <p class="auth-message account-profile-message" id="account-message" role="status" aria-live="polite"></p>
+          <div class="account-profile-actions">
+            <a class="outline-button" href="./workplace.html">Cancel</a>
+            <button type="submit" class="auth-submit" id="account-save">Save changes</button>
+          </div>
+        </form>
+        <p class="account-storage-note" id="account-storage-note"></p>
+      </section>
+    </main>
+    <script src="api-config.js?v=20261004-api-v1"></script>
+    <script src="auth-ui.js?v=20261004-account-v1"></script>
+  </body>
+</html>

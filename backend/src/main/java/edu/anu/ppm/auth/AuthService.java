@@ -71,6 +71,29 @@ class AuthService {
     }
 
     UserResponse currentUser(String bearerToken) {
+        return userForSession(bearerToken).toResponse();
+    }
+
+    @Transactional
+    UserResponse updateProfile(String bearerToken, ProfileUpdateRequest request) {
+        StoredUser current = userForSession(bearerToken);
+        String name = cleanName(request == null ? null : request.name());
+        String email = cleanEmail(request == null ? null : request.email());
+        String role = cleanRole(request == null ? null : request.role());
+        StoredUser existing = userByEmail(email);
+        if (existing != null && !existing.id().equals(current.id())) {
+            throw new AuthException(HttpStatus.CONFLICT, "An account with this email already exists.");
+        }
+        try {
+            jdbc.update("UPDATE ppm_users SET display_name = ?, email = ?, workspace_role = ? WHERE id = ?",
+                    name, email, role, current.id());
+        } catch (DuplicateKeyException exception) {
+            throw new AuthException(HttpStatus.CONFLICT, "An account with this email already exists.");
+        }
+        return new StoredUser(current.id(), name, email, current.passwordHash(), role, current.createdAt()).toResponse();
+    }
+
+    private StoredUser userForSession(String bearerToken) {
         String hash = tokenHash(requireToken(bearerToken));
         List<StoredUser> users = jdbc.query(
                 "SELECT u.id, u.display_name, u.email, u.password_hash, u.workspace_role, u.created_at " +
@@ -80,7 +103,7 @@ class AuthService {
                         result.getTimestamp("created_at").toInstant()),
                 hash, java.sql.Timestamp.from(Instant.now()));
         if (users.isEmpty()) throw new AuthException(HttpStatus.UNAUTHORIZED, "Your session has expired. Please sign in again.");
-        return users.get(0).toResponse();
+        return users.get(0);
     }
 
     void logout(String bearerToken) {

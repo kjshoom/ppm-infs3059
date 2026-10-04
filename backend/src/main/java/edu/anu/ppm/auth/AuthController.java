@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -35,6 +36,12 @@ class AuthController {
     @GetMapping("/me")
     UserResponse me(@RequestHeader(value = "Authorization", required = false) String authorization) {
         return auth.currentUser(bearer(authorization));
+    }
+
+    @PatchMapping("/profile")
+    UserResponse updateProfile(@RequestHeader(value = "Authorization", required = false) String authorization,
+                               @RequestBody(required = false) ProfileUpdateRequest request) {
+        return auth.updateProfile(bearer(authorization), request);
     }
 
     @PostMapping("/logout")
