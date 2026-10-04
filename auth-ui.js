@@ -5,23 +5,63 @@
   const ACTIVE_KEY = "ppm-local-active-user-v1";
   const APP_ACCOUNTS_KEY = "ppm-v2-prototype-accounts";
   const APP_ACTIVE_KEY = "ppm-v2-active-account";
+  const REMOTE_TOKEN_KEY = "ppm-auth-session-v1";
+  const REMOTE_USER_KEY = "ppm-auth-user-v1";
   const ITERATIONS = 210000;
   const $ = (selector) => document.querySelector(selector);
+
+  function apiBase() {
+    return String(window.PPM_CONFIG?.apiBaseUrl || "").trim().replace(/\/+$/, "");
+  }
+
+  function remoteToken() {
+    try { return sessionStorage.getItem(REMOTE_TOKEN_KEY) || ""; } catch { return ""; }
+  }
+
+  function readCachedRemoteUser() {
+    try {
+      const user = JSON.parse(sessionStorage.getItem(REMOTE_USER_KEY) || "null");
+      return user && user.id && user.name && user.email ? user : null;
+    } catch { return null; }
+  }
+
+  async function apiRequest(path, { method = "GET", body, token } = {}) {
+    if (!apiBase()) throw new Error("The shared account service has not been configured yet.");
+    const headers = { Accept: "application/json" };
+    if (body !== undefined) headers["Content-Type"] = "application/json";
+    if (token) headers.Authorization = `Bearer ${token}`;
+    let response;
+    try {
+      response = await fetch(`${apiBase()}${path}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+    } catch {
+      throw new Error("The account service could not be reached. Try again in a moment.");
+    }
+    let payload = {};
+    try { payload = await response.json(); } catch { /* A status-based message is used below. */ }
+    if (!response.ok) {
+      if (response.status === 401) throw new Error(payload.message || "Email or password is incorrect.");
+      if (response.status === 409) throw new Error(payload.message || "An account with this email already exists.");
+      throw new Error(payload.message || `The account service returned an error (${response.status}).`);
+    }
+    return payload;
+  }
 
   function readUsers() {
     try {
       const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
       return Array.isArray(users) ? users : [];
-    } catch {
-      return [];
-    }
+    } catch { return []; }
   }
 
-  function currentUser() {
+  function localUser() {
     const activeId = localStorage.getItem(ACTIVE_KEY);
     const user = readUsers().find((entry) => entry.id === activeId);
     if (!user) return null;
     return { id: user.id, name: user.name, email: user.email, role: user.role };
+  }
+
+  function currentUser() {
+    return apiBase() ? readCachedRemoteUser() : localUser();
   }
 
   function syncWorkspaceProfile(user) {
@@ -32,7 +72,13 @@
     let accounts = [];
     try { accounts = JSON.parse(localStorage.getItem(APP_ACCOUNTS_KEY) || "[]"); } catch { accounts = []; }
     if (!Array.isArray(accounts)) accounts = [];
-    const record = { id: user.id, displayName: user.name, role: user.role, createdAt: new Date().toISOString() };
+    const record = {
+      id: user.id,
+      displayName: user.name,
+      role: user.role,
+      email: user.email,
+      createdAt: user.createdAt || new Date().toISOString()
+    };
     const index = accounts.findIndex((account) => account.id === user.id);
     if (index >= 0) accounts[index] = { ...accounts[index], ...record };
     else accounts.push(record);
@@ -54,13 +100,13 @@
     return `./login.html?${params.toString()}`;
   }
 
-  function renderAuthSlot(slot) {
-    const user = currentUser();
+  function renderAuthSlot(slot, user, serviceUnavailable = false) {
     if (!user) {
-      slot.innerHTML = `<a class="auth-sign-in-link" href="${authURL()}">Sign in</a>`;
+      slot.innerHTML = `<a class="auth-sign-in-link" href="${authURL()}"${serviceUnavailable ? ' title="Account service unavailable"' : ""}>${serviceUnavailable ? "Sign in" : "Sign in"}</a>`;
       return;
     }
-    slot.innerHTML = `<div class="profile-control"><button class="profile-avatar" type="button" aria-label="${escapeHTML(user.name)} account" aria-expanded="false"><span>${escapeHTML(avatarName(user.name))}</span></button><section class="profile-menu" hidden aria-label="Signed-in account"><button class="profile-menu-close" type="button" aria-label="Close account menu">×</button><div class="profile-summary"><span class="profile-avatar profile-avatar-large">${escapeHTML(avatarName(user.name))}</span><div><strong>${escapeHTML(user.name)}</strong><span>${escapeHTML(user.email)}</span><small>${escapeHTML(user.role)}</small></div></div><a class="profile-menu-action" href="${authURL("login")}"><span aria-hidden="true">＋</span> Add another account</a><button class="profile-menu-action profile-signout" type="button"><span aria-hidden="true">↪</span> Sign out</button><p class="profile-menu-note">Saved in this browser</p></section></div>`;
+    const shared = Boolean(apiBase());
+    slot.innerHTML = `<div class="profile-control"><button class="profile-avatar" type="button" aria-label="${escapeHTML(user.name)} account" aria-expanded="false"><span>${escapeHTML(avatarName(user.name))}</span></button><section class="profile-menu" hidden aria-label="Signed-in account"><button class="profile-menu-close" type="button" aria-label="Close account menu">×</button><div class="profile-summary"><span class="profile-avatar profile-avatar-large">${escapeHTML(avatarName(user.name))}</span><div><strong>${escapeHTML(user.name)}</strong><span>${escapeHTML(user.email)}</span><small>${escapeHTML(user.role)}</small></div></div><a class="profile-menu-action" href="${authURL("login")}"><span aria-hidden="true">＋</span> Add another account</a><button class="profile-menu-action profile-signout" type="button"><span aria-hidden="true">↪</span> Sign out</button><p class="profile-menu-note">${shared ? "Account available on your other devices" : "Saved in this browser"}</p></section></div>`;
     const trigger = slot.querySelector(".profile-avatar[aria-expanded]");
     const menu = slot.querySelector(".profile-menu");
     const close = () => { menu.hidden = true; trigger.setAttribute("aria-expanded", "false"); };
@@ -69,8 +115,14 @@
       trigger.setAttribute("aria-expanded", String(!menu.hidden));
     });
     slot.querySelector(".profile-menu-close").addEventListener("click", close);
-    slot.querySelector(".profile-signout").addEventListener("click", () => {
-      localStorage.removeItem(ACTIVE_KEY);
+    slot.querySelector(".profile-signout").addEventListener("click", async () => {
+      const token = remoteToken();
+      if (apiBase() && token) {
+        try { await apiRequest("/api/auth/logout", { method: "POST", token }); } catch { /* Sign out locally even when offline. */ }
+        try { sessionStorage.removeItem(REMOTE_TOKEN_KEY); sessionStorage.removeItem(REMOTE_USER_KEY); } catch { /* Ignore unavailable session storage. */ }
+      } else {
+        localStorage.removeItem(ACTIVE_KEY);
+      }
       syncWorkspaceProfile(null);
       window.location.assign("./index.html");
     });
@@ -78,9 +130,35 @@
     document.addEventListener("keydown", (event) => { if (event.key === "Escape") close(); });
   }
 
-  function initHeader() {
-    syncWorkspaceProfile(currentUser());
-    document.querySelectorAll(".auth-slot").forEach(renderAuthSlot);
+  async function initHeader() {
+    const slots = [...document.querySelectorAll(".auth-slot")];
+    if (!apiBase()) {
+      const user = localUser();
+      syncWorkspaceProfile(user);
+      slots.forEach((slot) => renderAuthSlot(slot, user));
+      return;
+    }
+    let user = null;
+    let serviceUnavailable = false;
+    const token = remoteToken();
+    if (token) {
+      try {
+        user = await apiRequest("/api/auth/me", { token });
+        sessionStorage.setItem(REMOTE_USER_KEY, JSON.stringify(user));
+        syncWorkspaceProfile(user);
+      } catch (error) {
+        serviceUnavailable = error instanceof Error && error.message.includes("could not be reached");
+        if (!serviceUnavailable) {
+          sessionStorage.removeItem(REMOTE_TOKEN_KEY);
+          sessionStorage.removeItem(REMOTE_USER_KEY);
+          syncWorkspaceProfile(null);
+        }
+        user = serviceUnavailable ? readCachedRemoteUser() : null;
+      }
+    } else {
+      syncWorkspaceProfile(null);
+    }
+    slots.forEach((slot) => renderAuthSlot(slot, user, serviceUnavailable));
   }
 
   function randomHex(size) {
@@ -99,7 +177,7 @@
   function constantTimeEqual(left, right) {
     if (typeof left !== "string" || typeof right !== "string" || left.length !== right.length) return false;
     let difference = 0;
-    for (let index = 0; index < left.length; index += 1) difference |= left.charCodeAt(index) ^ right.charCodeAt(index);
+    for (let index = 0; index < left.length; index++) difference |= left.charCodeAt(index) ^ right.charCodeAt(index);
     return difference === 0;
   }
 
@@ -109,6 +187,7 @@
     const params = new URLSearchParams(location.search);
     const requestedReturn = params.get("return") || "workplace.html";
     const returnTo = requestedReturn === "index.html" || requestedReturn === "workplace.html" ? requestedReturn : "workplace.html";
+    const sharedAccounts = Boolean(apiBase());
     let signup = params.get("mode") === "signup";
     const title = $("#auth-title");
     const subtitle = $("#auth-subtitle");
@@ -118,10 +197,19 @@
     const switchButton = $("#auth-switch");
     const signupFields = document.querySelectorAll(".auth-signup-only");
     const password = $("#auth-password");
+    const storageNote = $("#auth-storage-note");
+
+    if (storageNote) {
+      storageNote.innerHTML = sharedAccounts
+        ? "<strong>Shared account</strong><p>Account details are verified by the PPM account service, so you can sign in from another device. Project and portfolio data remain stored in this browser.</p>"
+        : "<strong>Prototype account storage</strong><p>Until a shared account service is connected, accounts are saved in this browser only. They will not work in another browser or on another device.</p>";
+    }
 
     function setMode() {
       title.textContent = signup ? "Create your account" : "Sign in";
-      subtitle.textContent = signup ? "Create a PPM profile for this browser." : "Use your PPM account to enter the workplace.";
+      subtitle.textContent = signup
+        ? (sharedAccounts ? "Create an account you can use on your other devices." : "Create a PPM profile for this browser.")
+        : (sharedAccounts ? "Use your PPM account to enter the workplace." : "Use your PPM account to enter the workplace.");
       submit.textContent = signup ? "Create account" : "Continue";
       switchCopy.textContent = signup ? "Already have an account?" : "New to this prototype?";
       switchButton.textContent = signup ? "Sign in" : "Create account";
@@ -143,25 +231,37 @@
       try {
         const email = $("#auth-email").value.trim().toLocaleLowerCase();
         const passphrase = password.value;
-        let users = readUsers();
-        if (signup) {
-          const name = $("#auth-name").value.trim();
-          if (passphrase.length < 8) throw new Error("Use at least 8 characters for your password.");
-          if (users.some((user) => user.email.toLocaleLowerCase() === email)) throw new Error("An account with this email already exists in this browser. Sign in instead.");
-          const salt = randomHex(16);
-          const verifier = await passwordVerifier(passphrase, salt);
-          const user = { id: `ppm-${randomHex(12)}`, name, email, role: $("#auth-role").value, salt, verifier, createdAt: new Date().toISOString() };
-          users = [...users, user];
-          localStorage.setItem(USERS_KEY, JSON.stringify(users));
-          localStorage.setItem(ACTIVE_KEY, user.id);
-          syncWorkspaceProfile({ id: user.id, name: user.name, email: user.email, role: user.role });
+        if (sharedAccounts) {
+          const payload = signup
+            ? { name: $("#auth-name").value.trim(), email, password: passphrase, role: $("#auth-role").value }
+            : { email, password: passphrase };
+          if (signup && passphrase.length < 8) throw new Error("Use at least 8 characters for your password.");
+          const result = await apiRequest(signup ? "/api/auth/register" : "/api/auth/login", { method: "POST", body: payload });
+          if (!result.token || !result.user) throw new Error("The account service returned an incomplete sign-in response.");
+          sessionStorage.setItem(REMOTE_TOKEN_KEY, result.token);
+          sessionStorage.setItem(REMOTE_USER_KEY, JSON.stringify(result.user));
+          syncWorkspaceProfile(result.user);
         } else {
-          const user = users.find((entry) => entry.email.toLocaleLowerCase() === email);
-          if (!user) throw new Error("We couldn't find an account for that email in this browser.");
-          const verifier = await passwordVerifier(passphrase, user.salt);
-          if (!constantTimeEqual(verifier, user.verifier)) throw new Error("That password doesn't match this account.");
-          localStorage.setItem(ACTIVE_KEY, user.id);
-          syncWorkspaceProfile({ id: user.id, name: user.name, email: user.email, role: user.role });
+          let users = readUsers();
+          if (signup) {
+            const name = $("#auth-name").value.trim();
+            if (passphrase.length < 8) throw new Error("Use at least 8 characters for your password.");
+            if (users.some((user) => user.email.toLocaleLowerCase() === email)) throw new Error("An account with this email already exists in this browser. Sign in instead.");
+            const salt = randomHex(16);
+            const verifier = await passwordVerifier(passphrase, salt);
+            const user = { id: `ppm-${randomHex(12)}`, name, email, role: $("#auth-role").value, salt, verifier, createdAt: new Date().toISOString() };
+            users = [...users, user];
+            localStorage.setItem(USERS_KEY, JSON.stringify(users));
+            localStorage.setItem(ACTIVE_KEY, user.id);
+            syncWorkspaceProfile({ id: user.id, name: user.name, email: user.email, role: user.role });
+          } else {
+            const user = users.find((entry) => entry.email.toLocaleLowerCase() === email);
+            if (!user) throw new Error("We couldn't find an account for that email in this browser.");
+            const verifier = await passwordVerifier(passphrase, user.salt);
+            if (!constantTimeEqual(verifier, user.verifier)) throw new Error("That password doesn't match this account.");
+            localStorage.setItem(ACTIVE_KEY, user.id);
+            syncWorkspaceProfile({ id: user.id, name: user.name, email: user.email, role: user.role });
+          }
         }
         window.location.assign(`./${returnTo}`);
       } catch (error) {
@@ -174,7 +274,13 @@
     setMode();
   }
 
-  window.PPMAuth = { currentUser, syncWorkspaceProfile };
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => { initHeader(); initAuthPage(); }, { once: true });
-  else { initHeader(); initAuthPage(); }
+  window.PPMAuth = { currentUser, syncWorkspaceProfile, apiBase };
+  window.PPMAuthReady = new Promise((resolve) => {
+    const start = () => {
+      initAuthPage();
+      initHeader().catch(() => {}).finally(resolve);
+    };
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
+    else start();
+  });
 })();

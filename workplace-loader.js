@@ -16,6 +16,7 @@
 
   async function openWorkplace() {
     try {
+      await (window.PPMAuthReady || Promise.resolve());
       const response = await fetch("./index.html", { cache: "no-store" });
       if (!response.ok) throw new Error("The workplace template could not be loaded.");
       const source = new DOMParser().parseFromString(await response.text(), "text/html");

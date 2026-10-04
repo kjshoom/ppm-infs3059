@@ -1380,10 +1380,20 @@ function renderSidebarAccountSummary() {
 function renderAccountWorkspace() {
   const currentContainer = $("#current-account-summary");
   if (!currentContainer) return;
+  const sharedAccount = Boolean(window.PPMAuth?.apiBase());
   const current = activeAccount();
   currentContainer.innerHTML = current
-    ? `<div class="current-account-card"><span class="account-status">Signed in on this browser</span><strong>${escapeHTML(current.displayName)}</strong><p>${escapeHTML(current.role)}</p><small>Use the profile circle above to manage this session.</small></div>`
-    : '<div class="account-empty"><strong>You are not signed in</strong><p>Create a local prototype account or sign in from this browser.</p><a class="outline-button" href="./login.html?mode=signup&amp;return=workplace.html">Create an account</a></div>';
+    ? `<div class="current-account-card"><span class="account-status">${sharedAccount ? "Shared PPM account" : "Signed in on this browser"}</span><strong>${escapeHTML(current.displayName)}</strong><p>${escapeHTML(current.role)}</p><small>Use the profile circle above to manage this session.</small></div>`
+    : `<div class="account-empty"><strong>You are not signed in</strong><p>${sharedAccount ? "Sign in to your shared PPM account from this device." : "Create a local prototype account or sign in from this browser."}</p><a class="outline-button" href="./login.html?mode=signup&amp;return=workplace.html">${sharedAccount ? "Create or sign in" : "Create an account"}</a></div>`;
+  const storageSubtitle = $("#account-storage-subtitle");
+  const storageSummary = $("#account-storage-summary");
+  if (sharedAccount) {
+    if (storageSubtitle) storageSubtitle.textContent = "Shared sign-in is connected";
+    if (storageSummary) storageSummary.innerHTML = "<p>Account names and sign-in credentials are verified by the shared service. You can use the same account from another device. Proposal, review, and portfolio data are still stored in this browser.</p>";
+  } else {
+    if (storageSubtitle) storageSubtitle.textContent = "No shared account service is configured";
+    if (storageSummary) storageSummary.innerHTML = '<p>Until a shared account service is connected, accounts are saved in this browser only. Project and portfolio information is also stored in this browser.</p><a class="outline-button" href="./login.html?mode=signup&amp;return=workplace.html">Create an account</a>';
+  }
   renderSidebarAccountSummary();
 }
 

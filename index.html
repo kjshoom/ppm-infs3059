@@ -155,8 +155,8 @@
                 <div id="current-account-summary" aria-live="polite"></div>
               </section>
               <aside class="account-panel account-current" aria-labelledby="account-storage-title">
-                <div class="account-panel-heading"><span aria-hidden="true">i</span><div><h4 id="account-storage-title">About account storage</h4><p>This public prototype has no account server.</p></div></div>
-                <div class="account-storage-note"><p>Sign-in details are saved in this browser only. They do not sync to other devices or browsers. The password itself is never saved; only a salted verification value is stored locally.</p><a class="outline-button" href="./login.html?mode=signup&amp;return=workplace.html">Create an account</a></div>
+                <div class="account-panel-heading"><span aria-hidden="true">i</span><div><h4 id="account-storage-title">About account access</h4><p id="account-storage-subtitle">Account service status</p></div></div>
+                <div class="account-storage-note" id="account-storage-summary"><p>Until a shared account service is connected, accounts are saved in this browser only. Project and portfolio information is also stored in this browser.</p><a class="outline-button" href="./login.html?mode=signup&amp;return=workplace.html">Create an account</a></div>
               </aside>
             </div>
           </section>
@@ -374,6 +374,7 @@
       </div>
     </dialog>
 
-    <script src="auth-ui.js?v=20261004-auth-v1"></script>
+    <script src="api-config.js?v=20261004-api-v1"></script>
+    <script src="auth-ui.js?v=20261004-auth-v2"></script>
   </body>
 </html>

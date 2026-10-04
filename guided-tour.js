@@ -17,7 +17,7 @@
     { title: "Compare project profiles", description: "Select two to four evaluated projects and compare their five criterion ratings side by side, including the radar profile.", view: "comparison", target: "#comparison-workspace" },
     { title: "Build a candidate portfolio", description: "Choose shortlisted projects for a scenario. The workspace totals their cost and staff requirements and flags any limits exceeded.", view: "scenarios", target: "#scenario-workspace" },
     { title: "Record the human decision", description: "After reviewing the evidence and constraints, the Portfolio Manager records the outcome and its rationale here.", view: "decisions", target: "#decision-workspace" },
-    { title: "Your account stays in this browser", description: "Create or sign in to a local prototype account from the profile circle in the top corner. Account credentials are not synced across devices.", view: null, target: ".workplace-topbar .auth-slot" }
+    { title: "Your PPM account", description: window.PPMAuth?.apiBase() ? "Sign in with the same account on another device. Proposal and portfolio information is still kept in this browser." : "Create or sign in to a prototype account from the profile circle. Until the shared account service is connected, credentials stay in this browser.", view: null, target: ".workplace-topbar .auth-slot" }
   ];
 
   function removeFocus() {
@@ -43,6 +43,7 @@
     removeFocus();
     target.scrollIntoView({ behavior: "instant", block: "center", inline: "nearest" });
     requestAnimationFrame(() => {
+      if (layer.hidden) return;
       activeTarget = target;
       target.classList.add("tour-focus");
       const bounds = target.getBoundingClientRect();
@@ -61,6 +62,7 @@
       Object.assign(ring.style, { top: `${top}px`, left: `${left}px`, width: `${right - left}px`, height: `${bottom - top}px` });
       layer.append(ring);
       const popover = layer.querySelector(".tour-popover");
+      if (!popover) return;
       const popoverHeight = popover.offsetHeight;
       let popoverTop = bottom + 16;
       if (popoverTop + popoverHeight > innerHeight - 12) popoverTop = Math.max(12, top - popoverHeight - 16);
