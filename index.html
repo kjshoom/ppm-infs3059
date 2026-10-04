@@ -15,9 +15,9 @@
     <meta name="twitter:image" content="public/og.png" />
     <title>PPM — Project Portfolio Management</title>
     <link rel="icon" href="public/favicon.svg" />
-    <link rel="stylesheet" href="app/globals.css?v=20261003intro-feedback-v1" />
+    <link rel="stylesheet" href="app/globals.css?v=20261004-auth-tour-v1" />
   </head>
-  <body>
+  <body class="intro-document">
     <main id="app">
       <div class="intro-site" id="top">
         <header class="site-header intro-header">
@@ -29,7 +29,10 @@
             <a href="#top">Overview</a>
             <a href="#approach">How it works</a>
           </nav>
-          <a class="header-cta" href="#workspace" data-enter-workspace>The workplace <span aria-hidden="true">↘</span></a>
+          <div class="header-actions">
+            <a class="header-cta" href="./workplace.html">The workplace <span aria-hidden="true">↘</span></a>
+            <div class="auth-slot" id="auth-slot"></div>
+          </div>
         </header>
 
         <section class="hero" aria-labelledby="hero-title">
@@ -56,7 +59,7 @@
               into one human-led decision process.
             </p>
             <div class="hero-actions">
-              <a class="hero-try-button" href="#workspace" data-enter-workspace>The workplace <span aria-hidden="true">↘</span></a>
+              <a class="hero-try-button" href="./workplace.html">The workplace <span aria-hidden="true">↘</span></a>
               <a class="circle-link" href="#approach" aria-label="Explore how the prototype works">↓</a>
             </div>
           </div>
@@ -102,11 +105,11 @@
         <section class="intro-cta reveal" aria-labelledby="intro-cta-title">
           <p class="section-kicker">Interactive prototype</p>
           <h2 id="intro-cta-title">Explore the complete portfolio workflow.</h2>
-          <a class="intro-cta-button" href="#workspace" data-enter-workspace>The workplace <span aria-hidden="true">↘</span></a>
+          <a class="intro-cta-button" href="./workplace.html">The workplace <span aria-hidden="true">↘</span></a>
         </section>
       </div>
 
-      <section class="workspace-section" id="workspace" tabindex="-1" aria-labelledby="workspace-title">
+      <section class="workspace-section" id="workspace" tabindex="-1" aria-labelledby="workspace-title" hidden>
         <h2 class="sr-only" id="workspace-title">Project Portfolio Management workspace</h2>
         <div class="review-app">
           <div class="workspace-shell">
@@ -137,41 +140,25 @@
 
           <aside class="test-mode-banner" id="test-mode-banner" hidden aria-label="MVP test mode">
             <div><strong>Test workspace</strong><span>Temporary test data only — your normal proposals are unchanged.</span></div>
-            <div><button type="button" class="text-button" id="reset-test-data">Reset test data</button><a class="text-button" id="exit-test-mode" href="./index.html#workspace">Exit test mode</a></div>
+            <div><button type="button" class="text-button" id="reset-test-data">Reset test data</button><a class="text-button" id="exit-test-mode" href="./workplace.html">Exit test mode</a></div>
           </aside>
 
           <section class="workspace-view account-view" data-workspace-view="account" hidden aria-labelledby="account-title">
             <div class="view-heading account-heading">
-              <p class="section-kicker">Browser profile</p>
-              <h3 id="account-title">Choose how you will use this prototype.</h3>
-              <p>This is not a login. Your display name and role are stored only in this browser and are not shared or synced with other team members.</p>
+              <p class="section-kicker">Your account</p>
+              <h3 id="account-title">Your PPM profile.</h3>
+              <p>Use the profile menu in the upper corner to sign in, create an account, or sign out.</p>
             </div>
             <div class="account-layout">
-              <section class="account-panel" aria-labelledby="account-form-title">
-                <div class="account-panel-heading"><span aria-hidden="true">00</span><div><h4 id="account-form-title">Account details</h4><p>Your role provides guidance only. It does not restrict any workspace page.</p></div></div>
-                <form id="account-form" class="account-form">
-                  <label>Display Name<input id="account-display-name" name="displayName" maxlength="60" autocomplete="name" required /></label>
-                  <fieldset class="account-role-fieldset">
-                    <legend>Role</legend>
-                    <div class="account-role-options">
-                      <label><input type="radio" name="accountRole" value="Project Proposer" required /><span><strong>Project Proposer</strong><small>Prepare and submit project proposals.</small></span></label>
-                      <label><input type="radio" name="accountRole" value="Reviewer" required /><span><strong>Reviewer</strong><small>Assess proposals against the five criteria.</small></span></label>
-                      <label><input type="radio" name="accountRole" value="Portfolio Manager" required /><span><strong>Portfolio Manager</strong><small>Review scenarios and record portfolio decisions.</small></span></label>
-                    </div>
-                  </fieldset>
-                  <div class="account-form-actions"><button type="submit" class="solid-button">Save and continue</button><button type="button" class="outline-button" id="new-account">Use a different account</button></div>
-                  <p class="save-message" id="account-message" role="status"></p>
-                </form>
-              </section>
-              <aside class="account-panel account-current" aria-labelledby="current-account-title">
-                <div class="account-panel-heading"><span aria-hidden="true">●</span><div><h4 id="current-account-title">Current account</h4><p>Confirm the browser profile currently in use.</p></div></div>
+              <section class="account-panel account-current" aria-labelledby="current-account-title">
+                <div class="account-panel-heading"><span aria-hidden="true">●</span><div><h4 id="current-account-title">Signed-in profile</h4><p>Your name and role for this prototype.</p></div></div>
                 <div id="current-account-summary" aria-live="polite"></div>
+              </section>
+              <aside class="account-panel account-current" aria-labelledby="account-storage-title">
+                <div class="account-panel-heading"><span aria-hidden="true">i</span><div><h4 id="account-storage-title">About account storage</h4><p>This public prototype has no account server.</p></div></div>
+                <div class="account-storage-note"><p>Sign-in details are saved in this browser only. They do not sync to other devices or browsers. The password itself is never saved; only a salted verification value is stored locally.</p><a class="outline-button" href="./login.html?mode=signup&amp;return=workplace.html">Create an account</a></div>
               </aside>
             </div>
-            <section class="account-panel saved-accounts-panel" aria-labelledby="saved-accounts-title">
-              <div class="account-panel-heading"><span aria-hidden="true">↔</span><div><h4 id="saved-accounts-title">Saved accounts in this browser</h4><p>Switch or remove prototype profiles without changing portfolio, proposal, evaluation, shortlist, scenario, or decision data.</p></div></div>
-              <div class="saved-account-list" id="saved-account-list" aria-live="polite"></div>
-            </section>
           </section>
 
           <section class="workspace-view setup-view" data-workspace-view="organisation" hidden aria-labelledby="organisation-title">
@@ -387,7 +374,6 @@
       </div>
     </dialog>
 
-    <script src="app.js?v=20260930-intro-v1"></script>
-    <script src="public/test-feedback.js"></script>
+    <script src="auth-ui.js?v=20261004-auth-v1"></script>
   </body>
 </html>

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="The Project Portfolio Management workspace." />
+    <title>The workplace · PPM</title>
+    <link rel="icon" href="public/favicon.svg" />
+    <link rel="stylesheet" href="app/globals.css?v=20261004-auth-tour-v1" />
+  </head>
+  <body class="workplace-page">
+    <header class="workplace-topbar">
+      <a class="wordmark" href="./index.html" aria-label="PPM introduction"><span class="wordmark-dot" aria-hidden="true"></span><span>PPM</span></a>
+      <div class="workplace-top-actions">
+        <button class="workplace-demo-button" type="button" data-start-live-demo>Live demo <span aria-hidden="true">↗</span></button>
+        <a class="workplace-intro-link" href="./index.html">Introduction</a>
+        <div class="auth-slot" id="auth-slot"></div>
+      </div>
+    </header>
+    <div class="workplace-loading" id="workplace-loading" role="status">Opening the workplace…</div>
+    <main id="workplace-mount"></main>
+    <div id="tour-layer" hidden aria-live="polite"></div>
+    <script src="auth-ui.js?v=20261004-auth-v1"></script>
+    <script src="workplace-loader.js?v=20261004-auth-tour-v1"></script>
+  </body>
+</html>

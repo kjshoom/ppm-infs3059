@@ -372,7 +372,7 @@ const storedAccounts = normaliseAccounts(readStoredJSON(STORAGE.accounts, []));
 const storedActiveAccountId = String(readStoredJSON(STORAGE.activeAccount, "") || "");
 
 const state = {
-  activeView: TEST_MODE ? "tests" : "account",
+  activeView: TEST_MODE ? "tests" : "manager",
   accounts: storedAccounts,
   activeAccountId: storedAccounts.some((account) => account.id === storedActiveAccountId) ? storedActiveAccountId : "",
   editingAccountId: storedAccounts.some((account) => account.id === storedActiveAccountId) ? storedActiveAccountId : "",
@@ -1373,46 +1373,17 @@ function renderSidebarAccountSummary() {
   if (!container) return;
   const account = activeAccount();
   container.innerHTML = account
-    ? `<span>Current account</span><strong>${escapeHTML(account.displayName)}</strong><small>${escapeHTML(account.role)}</small>`
-    : '<span>Current account</span><strong>Not selected</strong><small>Open 00 Account to continue</small>';
+    ? `<span>Signed in as</span><strong>${escapeHTML(account.displayName)}</strong><small>${escapeHTML(account.role)}</small>`
+    : '<span>Account</span><strong>Not signed in</strong><small>Use the profile menu above</small>';
 }
 
 function renderAccountWorkspace() {
-  const form = $("#account-form");
   const currentContainer = $("#current-account-summary");
-  const listContainer = $("#saved-account-list");
-  if (!form || !currentContainer || !listContainer) return;
-
+  if (!currentContainer) return;
   const current = activeAccount();
-  const editing = state.accounts.find((account) => account.id === state.editingAccountId) || null;
-  form.elements.displayName.value = editing?.displayName || "";
-  form.querySelectorAll('[name="accountRole"]').forEach((input) => { input.checked = input.value === editing?.role; });
-
   currentContainer.innerHTML = current
-    ? `<div class="current-account-card"><span class="account-status">Active in this browser</span><strong>${escapeHTML(current.displayName)}</strong><p>${escapeHTML(current.role)}</p><small>All 01–08 workspace pages remain available.</small></div>`
-    : '<div class="account-empty"><strong>No account selected</strong><p>Enter a display name and choose one role. This will not create a real login.</p></div>';
-
-  listContainer.innerHTML = state.accounts.length
-    ? state.accounts.map((account) => `<article class="saved-account-card${account.id === state.activeAccountId ? ' is-active' : ''}"><div><span>${account.id === state.activeAccountId ? 'Current account' : 'Saved in this browser'}</span><strong>${escapeHTML(account.displayName)}</strong><small>${escapeHTML(account.role)}</small></div><div><button type="button" class="outline-button" data-switch-account="${escapeHTML(account.id)}">${account.id === state.activeAccountId ? 'Edit' : 'Switch'}</button><button type="button" class="text-button account-remove-button" data-remove-account="${escapeHTML(account.id)}">Remove account</button></div></article>`).join("")
-    : '<div class="account-empty"><strong>No saved accounts yet</strong><p>Profiles created here stay only in this browser.</p></div>';
-
-  listContainer.querySelectorAll("[data-switch-account]").forEach((button) => button.addEventListener("click", () => {
-    state.activeAccountId = button.dataset.switchAccount;
-    state.editingAccountId = button.dataset.switchAccount;
-    persistAccounts();
-    renderAccountWorkspace();
-    $("#account-display-name")?.focus();
-  }));
-  listContainer.querySelectorAll("[data-remove-account]").forEach((button) => button.addEventListener("click", () => {
-    const account = state.accounts.find((item) => item.id === button.dataset.removeAccount);
-    if (!account || !window.confirm(`Remove the browser profile “${account.displayName}”? Portfolio and project data will not be changed.`)) return;
-    state.accounts = state.accounts.filter((item) => item.id !== account.id);
-    if (state.activeAccountId === account.id) state.activeAccountId = "";
-    if (state.editingAccountId === account.id) state.editingAccountId = "";
-    persistAccounts();
-    renderAccountWorkspace();
-    $("#account-message").textContent = "Account removed. Portfolio workspace data was not changed.";
-  }));
+    ? `<div class="current-account-card"><span class="account-status">Signed in on this browser</span><strong>${escapeHTML(current.displayName)}</strong><p>${escapeHTML(current.role)}</p><small>Use the profile circle above to manage this session.</small></div>`
+    : '<div class="account-empty"><strong>You are not signed in</strong><p>Create a local prototype account or sign in from this browser.</p><a class="outline-button" href="./login.html?mode=signup&amp;return=workplace.html">Create an account</a></div>';
   renderSidebarAccountSummary();
 }
 
@@ -1465,16 +1436,6 @@ function renderAll() {
 }
 
 function bindEvents() {
-  $$('[data-enter-workspace]').forEach((link) => link.addEventListener("click", (event) => {
-    event.preventDefault();
-    setActiveView("account");
-    if (window.location.hash !== "#workspace") window.history.pushState(null, "", "#workspace");
-    const workspace = $("#workspace");
-    workspace.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
-    workspace.focus({ preventScroll: true });
-  }));
-  $("#account-form").addEventListener("submit", saveAccount);
-  $("#new-account").addEventListener("click", prepareNewAccount);
   $("#organisation-form").addEventListener("submit", saveOrganisation);
   $("#add-objective").addEventListener("click", () => renderObjectiveInputs([...objectiveDraftValues(), ""]));
   $("#proposal-form").addEventListener("submit", submitProposal);
@@ -1517,7 +1478,7 @@ loadStoredEvaluations();
 configureTestMode();
 bindEvents();
 renderAll();
-setActiveView(TEST_MODE ? "tests" : "account");
+setActiveView(TEST_MODE ? "tests" : "manager");
 
 document.body.classList.add("js-ready");
 const revealGroups = $$(".reveal-group");

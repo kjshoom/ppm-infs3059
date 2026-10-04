@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f6f6f2" />
+    <meta name="description" content="Sign in to the PPM project portfolio workspace." />
+    <title>Sign in · PPM</title>
+    <link rel="icon" href="public/favicon.svg" />
+    <link rel="stylesheet" href="app/globals.css?v=20261004-auth-tour-v1" />
+  </head>
+  <body class="auth-page">
+    <header class="auth-page-header">
+      <a class="wordmark" href="./index.html" aria-label="PPM home"><span class="wordmark-dot" aria-hidden="true"></span><span>PPM</span></a>
+      <a href="./workplace.html">The workplace <span aria-hidden="true">↗</span></a>
+    </header>
+    <main class="auth-page-main">
+      <section class="auth-card" aria-labelledby="auth-title">
+        <div class="auth-mark" aria-hidden="true"><span class="wordmark-dot"></span></div>
+        <p class="section-kicker">Project Portfolio Management</p>
+        <h1 id="auth-title">Sign in</h1>
+        <p class="auth-subtitle" id="auth-subtitle">Use your PPM account to enter the workplace.</p>
+        <form id="auth-form" novalidate>
+          <label class="auth-field auth-signup-only" hidden>Full name<input id="auth-name" name="name" autocomplete="name" maxlength="60" /></label>
+          <label class="auth-field">Email<input id="auth-email" name="email" type="email" autocomplete="email" required /></label>
+          <label class="auth-field">Password<input id="auth-password" name="password" type="password" autocomplete="current-password" required minlength="8" /></label>
+          <label class="auth-field auth-signup-only" hidden>Workspace role
+            <select id="auth-role" name="role">
+              <option>Portfolio Manager</option>
+              <option>Project Proposer</option>
+              <option>Reviewer</option>
+            </select>
+          </label>
+          <p class="auth-message" id="auth-message" role="alert"></p>
+          <button type="submit" class="auth-submit" id="auth-submit">Continue</button>
+        </form>
+        <p class="auth-mode-switch"><span id="auth-switch-copy">New to this prototype?</span> <button type="button" id="auth-switch">Create account</button></p>
+        <div class="auth-local-note"><strong>Prototype account storage</strong><p>Accounts are saved in this browser only because this site has no authentication server. They will not work in another browser or on another device. Passwords are not stored as plain text.</p></div>
+        <a class="auth-back-link" href="./index.html">← Back to the introduction</a>
+      </section>
+    </main>
+    <script src="auth-ui.js?v=20261004-auth-v1"></script>
+  </body>
+</html>
