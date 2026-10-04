@@ -110,6 +110,12 @@ class AuthService {
         jdbc.update("DELETE FROM ppm_login_sessions WHERE token_hash = ?", tokenHash(requireToken(bearerToken)));
     }
 
+    @Transactional
+    void deleteAccount(String bearerToken) {
+        StoredUser user = userForSession(bearerToken);
+        jdbc.update("DELETE FROM ppm_users WHERE id = ?", user.id());
+    }
+
     private AuthResponse issueSession(StoredUser user) {
         byte[] bytes = new byte[32];
         RANDOM.nextBytes(bytes);

@@ -24,6 +24,8 @@ Account sign-in can run in browser-only mode or use the Java API in `backend/`. 
 
 After signing in, open the profile circle and choose **Manage your PPM account** to update the name, email, or workspace role. The role is a prototype preference, not an access-control permission.
 
+Account settings also lets a signed-in user permanently delete their PPM sign-in and profile after confirming the action. Proposals and portfolio data are separate browser-stored prototype data and are not removed with the account.
+
 ## Shared account API
 
 The API uses Java 17+, Spring Boot, and PostgreSQL. GitHub Pages serves the frontend as static files; it does not run the Java server or provide an application database. Deploy the API and PostgreSQL separately, then set the public API origin in `api-config.js`:

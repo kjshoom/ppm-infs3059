@@ -86,6 +86,15 @@
     localStorage.setItem(APP_ACTIVE_KEY, JSON.stringify(user.id));
   }
 
+  function removeWorkspaceProfile(userId) {
+    let accounts = [];
+    try { accounts = JSON.parse(localStorage.getItem(APP_ACCOUNTS_KEY) || "[]"); } catch { accounts = []; }
+    if (Array.isArray(accounts)) {
+      localStorage.setItem(APP_ACCOUNTS_KEY, JSON.stringify(accounts.filter((account) => account.id !== userId)));
+    }
+    if (localStorage.getItem(APP_ACTIVE_KEY) === JSON.stringify(userId)) localStorage.removeItem(APP_ACTIVE_KEY);
+  }
+
   function escapeHTML(value) {
     return String(value || "").replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
   }
@@ -235,6 +244,69 @@
         message.textContent = error instanceof Error ? error.message : "We couldn't save your account information.";
         submit.disabled = false;
         submit.textContent = "Save changes";
+      }
+    });
+
+    const deleteDialog = $("#account-delete-dialog");
+    const deleteForm = $("#account-delete-form");
+    const deleteOpen = $("#account-delete-open");
+    const deleteInput = $("#account-delete-confirm");
+    const deleteSubmit = $("#account-delete-submit");
+    const deleteMessage = $("#account-delete-message");
+    deleteForm.addEventListener("submit", (event) => event.preventDefault());
+    const closeDeleteDialog = () => {
+      deleteDialog.close();
+      deleteForm.reset();
+      deleteSubmit.disabled = true;
+      deleteSubmit.textContent = "Delete account";
+      deleteMessage.textContent = "";
+      deleteMessage.dataset.state = "";
+    };
+
+    deleteOpen.addEventListener("click", () => {
+      deleteDialog.showModal();
+      deleteInput.focus();
+    });
+    $("#account-delete-close").addEventListener("click", closeDeleteDialog);
+    $("#account-delete-cancel").addEventListener("click", closeDeleteDialog);
+    deleteDialog.addEventListener("cancel", (event) => {
+      event.preventDefault();
+      closeDeleteDialog();
+    });
+    deleteDialog.addEventListener("click", (event) => {
+      if (event.target === deleteDialog) closeDeleteDialog();
+    });
+    deleteInput.addEventListener("input", () => {
+      deleteSubmit.disabled = deleteInput.value !== "DELETE";
+      deleteMessage.textContent = "";
+      deleteMessage.dataset.state = "";
+    });
+    deleteSubmit.addEventListener("click", async () => {
+      if (deleteInput.value !== "DELETE" || deleteSubmit.disabled) return;
+      deleteSubmit.disabled = true;
+      deleteOpen.disabled = true;
+      deleteSubmit.textContent = "Deleting…";
+      deleteMessage.textContent = "";
+      try {
+        if (apiBase()) {
+          const token = remoteToken();
+          if (!token) throw new Error("Your session has expired. Please sign in again.");
+          await apiRequest("/api/auth/account", { method: "DELETE", token });
+          sessionStorage.removeItem(REMOTE_TOKEN_KEY);
+          sessionStorage.removeItem(REMOTE_USER_KEY);
+        } else {
+          const remainingUsers = readUsers().filter((entry) => entry.id !== user.id);
+          localStorage.setItem(USERS_KEY, JSON.stringify(remainingUsers));
+          if (localStorage.getItem(ACTIVE_KEY) === user.id) localStorage.removeItem(ACTIVE_KEY);
+        }
+        removeWorkspaceProfile(user.id);
+        window.location.assign("./index.html");
+      } catch (error) {
+        deleteMessage.dataset.state = "error";
+        deleteMessage.textContent = error instanceof Error ? error.message : "We couldn't delete your account. Please try again.";
+        deleteSubmit.disabled = false;
+        deleteOpen.disabled = false;
+        deleteSubmit.textContent = "Delete account";
       }
     });
   }

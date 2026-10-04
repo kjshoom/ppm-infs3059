@@ -7,7 +7,7 @@
     <meta name="description" content="Manage your PPM account details." />
     <title>Your account · PPM</title>
     <link rel="icon" href="public/favicon.svg" />
-    <link rel="stylesheet" href="app/globals.css?v=20261004-account-v1" />
+    <link rel="stylesheet" href="app/globals.css?v=20261004-account-v2" />
   </head>
   <body class="account-settings-page">
     <header class="auth-page-header">
@@ -51,8 +51,32 @@
         </form>
         <p class="account-storage-note" id="account-storage-note"></p>
       </section>
+      <section class="account-danger-card" aria-labelledby="delete-account-heading">
+        <div>
+          <p class="section-kicker">Account removal</p>
+          <h2 id="delete-account-heading">Delete account</h2>
+          <p id="delete-account-description">This permanently removes your PPM sign-in and profile. Proposal and portfolio data are stored separately in this browser and will remain.</p>
+        </div>
+        <button class="account-delete-button" id="account-delete-open" type="button">Delete account</button>
+      </section>
     </main>
+    <dialog class="account-delete-dialog" id="account-delete-dialog" aria-labelledby="account-delete-title" aria-describedby="account-delete-copy">
+      <form method="dialog" class="account-delete-dialog-card" id="account-delete-form">
+        <button class="account-delete-close" type="button" id="account-delete-close" aria-label="Close">×</button>
+        <p class="section-kicker">This cannot be undone</p>
+        <h2 id="account-delete-title">Delete your account?</h2>
+        <p id="account-delete-copy">Your sign-in and profile will be permanently removed. This does not delete proposals or portfolio data saved separately in this browser.</p>
+        <label class="auth-field" for="account-delete-confirm">Type <strong>DELETE</strong> to confirm
+          <input id="account-delete-confirm" autocomplete="off" spellcheck="false" />
+        </label>
+        <p class="auth-message account-delete-message" id="account-delete-message" role="status" aria-live="polite"></p>
+        <div class="account-delete-actions">
+          <button class="outline-button" type="button" id="account-delete-cancel">Keep account</button>
+          <button class="account-delete-button" type="button" id="account-delete-submit" disabled>Delete account</button>
+        </div>
+      </form>
+    </dialog>
     <script src="api-config.js?v=20261004-api-v1"></script>
-    <script src="auth-ui.js?v=20261004-account-v1"></script>
+    <script src="auth-ui.js?v=20261004-account-v2"></script>
   </body>
 </html>

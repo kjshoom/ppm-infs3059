@@ -5,6 +5,7 @@ import static edu.anu.ppm.auth.AuthModels.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,6 +48,12 @@ class AuthController {
     @PostMapping("/logout")
     ResponseEntity<Void> logout(@RequestHeader(value = "Authorization", required = false) String authorization) {
         auth.logout(bearer(authorization));
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/account")
+    ResponseEntity<Void> deleteAccount(@RequestHeader(value = "Authorization", required = false) String authorization) {
+        auth.deleteAccount(bearer(authorization));
         return ResponseEntity.noContent().build();
     }
 

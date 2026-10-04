@@ -2,6 +2,7 @@ package edu.anu.ppm.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -118,6 +119,39 @@ class AuthFlowTest {
                 .andExpect(status().isOk()).andReturn();
 
         assertThat(preflight.getResponse().getHeader("Access-Control-Allow-Methods")).contains("PATCH");
+    }
+
+    @Test
+    void deletingAccountInvalidatesAllSessionsAndRemovesCredentials() throws Exception {
+        String email = "delete-" + System.nanoTime() + "@example.com";
+        String signup = "{\"name\":\"Delete Me\",\"email\":\"" + email + "\",\"password\":\"project-ppm-2026\",\"role\":\"Reviewer\"}";
+        MvcResult created = http.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(signup))
+                .andExpect(status().isCreated()).andReturn();
+        String firstToken = field(created.getResponse().getContentAsString(), "token");
+        String login = "{\"email\":\"" + email + "\",\"password\":\"project-ppm-2026\"}";
+        MvcResult secondSession = http.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(login))
+                .andExpect(status().isOk()).andReturn();
+        String secondToken = field(secondSession.getResponse().getContentAsString(), "token");
+
+        http.perform(delete("/api/auth/account").header("Authorization", "Bearer " + firstToken))
+                .andExpect(status().isNoContent());
+        http.perform(get("/api/auth/me").header("Authorization", "Bearer " + firstToken))
+                .andExpect(status().isUnauthorized());
+        http.perform(get("/api/auth/me").header("Authorization", "Bearer " + secondToken))
+                .andExpect(status().isUnauthorized());
+        http.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(login))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void accountDeletionAllowsBrowserPreflightRequests() throws Exception {
+        MvcResult preflight = http.perform(options("/api/auth/account")
+                        .header("Origin", "https://kjshoom.github.io")
+                        .header("Access-Control-Request-Method", "DELETE")
+                        .header("Access-Control-Request-Headers", "authorization"))
+                .andExpect(status().isOk()).andReturn();
+
+        assertThat(preflight.getResponse().getHeader("Access-Control-Allow-Methods")).contains("DELETE");
     }
 
     private static String field(String json, String name) {

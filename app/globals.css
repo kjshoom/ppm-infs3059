@@ -1377,6 +1377,29 @@ body { background: var(--ink); }
 .account-storage-note { display: grid; gap: 17px; padding: 8px 0 0; }
 .account-storage-note p { max-width: 650px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
 .account-storage-note .outline-button { justify-self: start; }
+.account-danger-card { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 18px; border: 1px solid #d9c9c5; border-radius: 14px; background: #fff; padding: clamp(20px, 4vw, 30px); }
+.account-danger-card .section-kicker { margin: 0 0 8px; color: #8b342b; font-size: 9px; }
+.account-danger-card h2 { margin: 0; font-size: 19px; letter-spacing: -.04em; }
+.account-danger-card p:last-child { max-width: 490px; margin: 7px 0 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+.account-delete-button { min-height: 42px; flex: 0 0 auto; border: 1px solid #a52f27; border-radius: 6px; background: #a52f27; padding: 0 15px; color: white; cursor: pointer; font: inherit; font-size: 11px; font-weight: 850; }
+.account-delete-button:hover { border-color: #81251f; background: #81251f; }
+.account-delete-button:disabled { opacity: .55; cursor: wait; }
+.account-delete-dialog { width: min(calc(100% - 32px), 490px); max-width: none; border: 1px solid #d9d9d2; border-radius: 15px; padding: 0; box-shadow: 0 22px 80px rgba(20,20,15,.2); }
+.account-delete-dialog::backdrop { background: rgba(20,20,18,.42); }
+.account-delete-dialog-card { position: relative; display: grid; gap: 14px; padding: clamp(24px, 5vw, 36px); }
+.account-delete-close { position: absolute; top: 12px; right: 13px; width: 34px; height: 34px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); cursor: pointer; font-size: 24px; }
+.account-delete-dialog .section-kicker { margin: 0; color: #8b342b; font-size: 9px; }
+.account-delete-dialog h2 { margin: 0; font-size: 26px; letter-spacing: -.05em; }
+.account-delete-dialog-card > p:not(.section-kicker):not(.auth-message) { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.account-delete-dialog .auth-field { margin-top: 3px; }
+.account-delete-dialog .auth-field strong { color: #8b2e27; letter-spacing: .06em; }
+.account-delete-dialog .auth-field input { min-height: 44px; border: 1px solid #a7a79f; border-radius: 5px; padding: 0 12px; font: inherit; }
+.account-delete-message { min-height: 0; }
+.account-delete-message[data-state="error"] { color: #9d311f; }
+.account-delete-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 2px; }
+.account-delete-actions .outline-button, .account-delete-actions .account-delete-button { min-height: 42px; border-radius: 6px; padding: 0 14px; font: inherit; font-size: 11px; font-weight: 800; }
+.account-delete-actions .outline-button { border: 1px solid var(--line); background: white; cursor: pointer; }
+@media (max-width: 560px) { .account-danger-card { align-items: flex-start; flex-direction: column; } .account-delete-actions { flex-direction: column-reverse; } .account-delete-actions > button { width: 100%; } }
 
 .auth-page { min-height: 100vh; background: #f5f6f2; }
 .auth-page-header { display: flex; min-height: 72px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); background: white; padding: 0 clamp(18px, 4vw, 60px); }
