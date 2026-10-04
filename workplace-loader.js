@@ -31,7 +31,7 @@
 
       await loadScript("./app.js?v=20261004-workplace-v1");
       await loadScript("./public/test-feedback.js?v=20261004-workplace-v1");
-      await loadScript("./guided-tour.js?v=20261004-tour-v1");
+      await loadScript("./guided-tour.js?v=20261004-tour-v2");
       window.PPMTour?.init();
     } catch (error) {
       loading.hidden = false;

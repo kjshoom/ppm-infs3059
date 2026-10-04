@@ -1,7 +1,6 @@
 (() => {
   "use strict";
 
-  const SEEN_KEY = "ppm-live-demo-seen-v1";
   const layer = document.querySelector("#tour-layer");
   const $ = (selector) => document.querySelector(selector);
   let stepIndex = 0;
@@ -89,7 +88,6 @@
     removeFocus();
     layer.hidden = true;
     layer.replaceChildren();
-    localStorage.setItem(SEEN_KEY, "1");
     if (resizeHandler) window.removeEventListener("resize", resizeHandler);
     resizeHandler = null;
   }
@@ -104,7 +102,6 @@
 
   function init() {
     document.querySelectorAll("[data-start-live-demo]").forEach((button) => button.addEventListener("click", start));
-    if (localStorage.getItem(SEEN_KEY) !== "1") window.setTimeout(start, 650);
   }
 
   window.PPMTour = { init, start };
