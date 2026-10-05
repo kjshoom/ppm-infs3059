@@ -130,7 +130,11 @@
     if (step.view) document.querySelector(`[data-workspace-view-button="${step.view}"]`)?.click();
     layer.hidden = false;
     layer.innerHTML = `<div class="tour-popover" role="dialog" aria-modal="true" aria-labelledby="tour-title"><p class="tour-progress">Live demo · ${String(stepIndex + 1).padStart(2, "0")} / ${steps.length}</p><h2 id="tour-title">${step.title}</h2><p>${step.description}</p><footer><button class="tour-skip" type="button" data-tour-skip>Skip</button><div><button type="button" data-tour-back ${stepIndex === 0 ? "disabled" : ""}>Back</button><button type="button" data-tour-next>${stepIndex === steps.length - 1 ? "Finish" : "Next"}</button></div></footer></div>`;
-    layer.querySelector("[data-tour-next]").addEventListener("click", () => { stepIndex += 1; showStep(); });
+    layer.querySelector("[data-tour-next]").addEventListener("click", () => {
+      if (stepIndex === steps.length - 1) { finish(true); return; }
+      stepIndex += 1;
+      showStep();
+    });
     layer.querySelector("[data-tour-back]").addEventListener("click", () => { if (stepIndex > 0) { stepIndex -= 1; showStep(); } });
     layer.querySelector("[data-tour-skip]").addEventListener("click", finish);
     requestAnimationFrame(() => requestAnimationFrame(placeStep));

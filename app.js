@@ -1469,7 +1469,10 @@ bindEvents();
 renderAll();
 setActiveView(defaultWorkspaceView());
 window.PPMWorkspace = {
-  returnToDefault: () => setActiveView(defaultWorkspaceView())
+  returnToDefault: () => {
+    setActiveView(defaultWorkspaceView());
+    window.scrollTo(0, 0);
+  }
 };
 
 document.body.classList.add("js-ready");
