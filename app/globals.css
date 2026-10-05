@@ -376,11 +376,13 @@ body.js-ready .reveal-group.is-visible .reveal { transition-delay: 0ms; }
 /* Integrated PPM decision-support workspace */
 .workflow-strip {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, minmax(155px, 1fr));
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
   border-bottom: 1px solid var(--ink);
   background: #fafaf6;
 }
-.workflow-strip span { position: relative; display: flex; min-height: 64px; align-items: center; gap: 9px; border-right: 1px solid var(--line); padding: 12px 16px; color: var(--muted); font-size: 10px; font-weight: 800; }
+.workflow-strip span { position: relative; display: flex; min-height: 64px; align-items: center; gap: 9px; border-right: 1px solid var(--line); padding: 12px 14px; color: var(--muted); font-size: 10px; font-weight: 800; white-space: nowrap; }
 .workflow-strip span:last-child { border-right: 0; }
 .workflow-strip b { display: grid; width: 25px; height: 25px; place-items: center; border: 1px solid currentColor; border-radius: 50%; }
 .workflow-strip .is-current { background: var(--yellow); color: var(--ink); }
@@ -531,8 +533,7 @@ body.js-ready .reveal-group.is-visible .reveal { transition-delay: 0ms; }
 }
 
 @media (max-width: 760px) {
-  .workflow-strip { grid-template-columns: 1fr; }
-  .workflow-strip span:not(.is-current) { display: none; }
+  .workflow-strip { grid-template-columns: repeat(6, minmax(155px, 1fr)); }
   .portfolio-summary { grid-template-columns: 1fr 1fr; }
   .portfolio-summary article:nth-child(2) { border-right: 0; }
   .portfolio-summary article:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
