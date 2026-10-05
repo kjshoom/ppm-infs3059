@@ -1375,8 +1375,8 @@ body { background: var(--ink); }
 .account-storage-note { margin: 22px 0 0; border-top: 1px solid var(--line); padding-top: 16px; color: var(--muted); font-size: 11px; line-height: 1.55; }
 
 .workplace-page { min-height: 100vh; background: #f1f1ec; }
-.workplace-topbar { position: sticky; top: 0; z-index: 100; display: flex; min-height: 68px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.97); padding: 8px clamp(16px, 3vw, 42px); }
-.workplace-top-actions { display: flex; align-items: center; gap: clamp(10px, 2vw, 24px); }
+.workplace-topbar { position: sticky; top: 0; z-index: 100; display: flex; min-height: 68px; align-items: center; justify-content: flex-end; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.97); padding: 8px clamp(16px, 3vw, 42px); }
+.workplace-top-actions { display: flex; align-items: center; gap: clamp(10px, 2vw, 24px); margin-left: auto; }
 .workplace-demo-button, .workplace-intro-link { border: 0; background: transparent; color: var(--ink); cursor: pointer; font-size: 12px; font-weight: 800; }
 .workplace-demo-button { min-height: 38px; border-bottom: 1px solid var(--ink); padding: 0 2px; }
 .workplace-demo-button:hover, .workplace-intro-link:hover { color: #55554f; }
