@@ -123,7 +123,7 @@
   }
 
   function showStep() {
-    if (stepIndex >= steps.length) { finish(); return; }
+    if (stepIndex >= steps.length) { finish(true); return; }
     const step = steps[stepIndex];
     removeFocus();
     step.prepare?.();
@@ -136,12 +136,13 @@
     requestAnimationFrame(() => requestAnimationFrame(placeStep));
   }
 
-  function finish() {
+  function finish(returnToDefault = false) {
     removeFocus();
     layer.hidden = true;
     layer.replaceChildren();
     if (resizeHandler) window.removeEventListener("resize", resizeHandler);
     resizeHandler = null;
+    if (returnToDefault) window.PPMWorkspace?.returnToDefault();
   }
 
   function start() {

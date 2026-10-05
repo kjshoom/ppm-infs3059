@@ -33,10 +33,10 @@
       source.querySelectorAll("dialog.modal").forEach((dialog) => document.body.append(dialog.cloneNode(true)));
       loading.hidden = true;
 
-      await loadScript("./app.js?v=20261005-guest-demo-v2");
+      await loadScript("./app.js?v=20261005-demo-finish-v1");
       if (window.PPMGuestDemo) await loadScript("./guest-demo.js?v=20261005-v1");
       await loadScript("./public/test-feedback.js?v=20261004-workplace-v1");
-      await loadScript("./guided-tour.js?v=20261004-tour-v3");
+      await loadScript("./guided-tour.js?v=20261005-demo-finish-v1");
       window.PPMTour?.init();
     } catch (error) {
       loading.hidden = false;

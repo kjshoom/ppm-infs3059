@@ -1468,6 +1468,9 @@ configureTestMode();
 bindEvents();
 renderAll();
 setActiveView(defaultWorkspaceView());
+window.PPMWorkspace = {
+  returnToDefault: () => setActiveView(defaultWorkspaceView())
+};
 
 document.body.classList.add("js-ready");
 const revealGroups = $$(".reveal-group");
