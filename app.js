@@ -64,7 +64,8 @@ const REVIEW_SCORING_GUIDES = {
   }
 };
 
-const TEST_MODE = new URLSearchParams(window.location.search).has("mvpTest");
+const TEST_MODE = window.PPMGuestDemo !== true && new URLSearchParams(window.location.search).has("mvpTest");
+const GUEST_DEMO = window.PPMGuestDemo === true;
 const TEST_PREFIX = "ppm-mvp-test-v1:";
 
 const DEFAULT_ORGANISATION = {
@@ -252,9 +253,9 @@ const STORAGE = {
 const activeStorage = TEST_MODE ? window.sessionStorage : window.localStorage;
 const scopedStorageKey = (key) => TEST_MODE ? `${TEST_PREFIX}${key}` : key;
 const storage = {
-  get: (key) => activeStorage.getItem(scopedStorageKey(key)),
-  set: (key, value) => activeStorage.setItem(scopedStorageKey(key), value),
-  remove: (key) => activeStorage.removeItem(scopedStorageKey(key))
+  get: (key) => GUEST_DEMO ? null : activeStorage.getItem(scopedStorageKey(key)),
+  set: (key, value) => { if (!GUEST_DEMO) activeStorage.setItem(scopedStorageKey(key), value); },
+  remove: (key) => { if (!GUEST_DEMO) activeStorage.removeItem(scopedStorageKey(key)); }
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -291,6 +292,12 @@ function uniqueObjectives(values) {
 }
 
 const ACCOUNT_ROLES = ["Project Proposer", "Reviewer", "Portfolio Manager"];
+
+const WORKSPACE_VIEWS_BY_ROLE = {
+  "Project Proposer": ["proposer"],
+  Reviewer: ["reviewer"],
+  "Portfolio Manager": ["organisation", "manager", "comparison", "shortlist", "insights", "scenarios", "reports", "decisions"]
+};
 
 function normaliseAccounts(values) {
   const seen = new Set();
@@ -803,7 +810,7 @@ function renderScenario() {
 
   $("#scenario-selection").innerHTML = selected.length
     ? selected.map((proposal) => `<button type="button" data-remove-comparison="${escapeHTML(proposal.id)}"><span>${escapeHTML(proposal.title)}</span><strong>${money(proposal.cost)} · ${proposal.staff} FTE</strong><i aria-hidden="true">×</i></button>`).join("")
-    : "<p>Select two to four evaluated projects from the table.</p>";
+    : "<p>Select one project for its radar profile, or up to four for a comparison.</p>";
   $("#scenario-cost").textContent = money(totalCost);
   $("#scenario-staff").textContent = `${totalStaff} FTE`;
   $("#budget-check").textContent = budgetOk ? `Within ${money(organisation.budget)}` : `${money(totalCost - organisation.budget)} over budget`;
@@ -816,7 +823,8 @@ function renderScenario() {
     : budgetOk && staffOk
       ? "<strong>Feasible candidate</strong><span>The current selection is within both organisation limits.</span>"
       : `<strong>Needs revision</strong><span>${!budgetOk ? "Budget limit exceeded. " : ""}${!staffOk ? "Staff capacity exceeded." : ""}</span>`;
-  $("#open-compare").disabled = selected.length < 2;
+  $("#open-compare").disabled = selected.length < 1;
+  $("#open-compare").textContent = selected.length === 1 ? "View radar profile" : "Open comparison";
   $$('[data-remove-comparison]').forEach((button) => button.addEventListener("click", () => toggleComparisonSelection(button.dataset.removeComparison, false)));
   renderSavedScenarios();
 }
@@ -889,10 +897,12 @@ function renderDetail() {
   detailEl.closest('[data-workspace-view="manager"]')?.classList.add("is-detail-open");
   const savedDecision = state.decisions[proposal.id];
   const status = currentStatus(proposal);
-  const detailHeader = `<button type="button" class="project-detail-back" data-close-project-detail>← Back to Project Overview</button><div class="insight-header"><div><p class="section-kicker">Project insight</p><h3>${escapeHTML(proposal.title)}</h3><p>${escapeHTML(proposal.owner)} · ${escapeHTML(proposal.objective)} · ${money(proposal.cost)} · ${proposal.staff} FTE · ${escapeHTML(proposal.duration)}</p></div><div><span class="objective-tag">${escapeHTML(scenarioLabel(proposal))}</span><span class="status-pill ${statusClass(status)}">${escapeHTML(status)}</span><button type="button" class="outline-button" data-open-review="${escapeHTML(proposal.id)}">${isEvaluated(proposal) ? "Edit evaluation" : "Start evaluation"}</button>${proposal.isCustom ? `<button type="button" class="card-remove-button" data-delete-proposal="${escapeHTML(proposal.id)}">Remove added</button>` : ""}</div></div>`;
+  const canReview = accountCanView("reviewer");
+  const reviewAction = canReview ? `<button type="button" class="outline-button" data-open-review="${escapeHTML(proposal.id)}">${isEvaluated(proposal) ? "Edit evaluation" : "Start evaluation"}</button>` : "";
+  const detailHeader = `<button type="button" class="project-detail-back" data-close-project-detail>← Back to Project Overview</button><div class="insight-header"><div><p class="section-kicker">Project insight</p><h3>${escapeHTML(proposal.title)}</h3><p>${escapeHTML(proposal.owner)} · ${escapeHTML(proposal.objective)} · ${money(proposal.cost)} · ${proposal.staff} FTE · ${escapeHTML(proposal.duration)}</p></div><div><span class="objective-tag">${escapeHTML(scenarioLabel(proposal))}</span><span class="status-pill ${statusClass(status)}">${escapeHTML(status)}</span>${reviewAction}${proposal.isCustom ? `<button type="button" class="card-remove-button" data-delete-proposal="${escapeHTML(proposal.id)}">Remove added</button>` : ""}</div></div>`;
 
   if (!isEvaluated(proposal)) {
-    detailEl.innerHTML = `${detailHeader}${detailsOverview(proposal)}<div class="pending-evaluation"><div><p class="section-kicker">Next step</p><h4>Ready for a five-criterion review.</h4></div><div><p>Record ratings and a short reason for strategic alignment, expected business value, delivery feasibility, risk manageability, and time criticality. A radar profile appears only after all five are complete.</p><button type="button" class="solid-button" data-open-review="${escapeHTML(proposal.id)}">Review this proposal</button></div></div>`;
+    detailEl.innerHTML = `${detailHeader}${detailsOverview(proposal)}<div class="pending-evaluation"><div><p class="section-kicker">Next step</p><h4>${canReview ? "Ready for a five-criterion review." : "Awaiting reviewer assessment."}</h4></div><div><p>${canReview ? "Record ratings and a short reason for strategic alignment, expected business value, delivery feasibility, risk manageability, and time criticality. A radar profile appears only after all five are complete." : "A reviewer will record the five criterion ratings and supporting rationale before the project can be compared."}</p>${canReview ? `<button type="button" class="solid-button" data-open-review="${escapeHTML(proposal.id)}">Review this proposal</button>` : ""}</div></div>`;
   } else {
     detailEl.innerHTML = `${detailHeader}${detailsOverview(proposal)}
       <div class="insight-grid"><div class="single-radar">${radarSVG([proposal])}</div><div class="criteria-panel"><h4>Criterion ratings</h4>${CRITERIA.map((criterion, index) => `<button type="button" class="criterion-row ${index === 0 ? "is-active" : ""}" data-criterion="${criterion.key}"><span>${criterion.label}</span><strong class="${scoreClass(proposal.scores[criterion.key])}">${proposal.scores[criterion.key]}/5</strong></button>`).join("")}</div><div class="rationale-panel"><p class="section-kicker">Reviewer rationale</p><h4 id="rationale-title">${CRITERIA[0].label}</h4><p id="rationale-copy">${escapeHTML(proposal.rationales[CRITERIA[0].key])}</p>${proposal.missing.length ? `<div class="missing-note"><strong>Information still required</strong><span>${proposal.missing.map(escapeHTML).join(", ")}</span></div>` : ""}</div></div>
@@ -1348,21 +1358,56 @@ function submitProposal(event) {
   form.reset();
   populateObjectives();
   renderAll();
-  $("#proposal-form-message").textContent = "Proposal submitted. It is now in the reviewer queue.";
-  setActiveView("reviewer");
+  const isProposer = activeAccount()?.role === "Project Proposer";
+  $("#proposal-form-message").textContent = "Proposal submitted. It is now awaiting reviewer assessment.";
+  setActiveView(isProposer ? "proposer" : "reviewer");
 }
 
 function activeAccount() {
   return state.accounts.find((account) => account.id === state.activeAccountId) || null;
 }
 
+function accountCanView(view, account = activeAccount()) {
+  if (TEST_MODE || !account) return true;
+  const views = WORKSPACE_VIEWS_BY_ROLE[account.role];
+  return !views || views.includes(view);
+}
+
+function defaultWorkspaceView() {
+  if (TEST_MODE) return "tests";
+  const role = activeAccount()?.role;
+  if (role === "Project Proposer") return "proposer";
+  if (role === "Reviewer") return "reviewer";
+  return "manager";
+}
+
+function updateRoleNavigation(account = activeAccount()) {
+  const nav = $(".workspace-nav");
+  if (!nav) return;
+  nav.dataset.activeRole = account?.role || "";
+  const allowedViews = TEST_MODE || !account ? null : WORKSPACE_VIEWS_BY_ROLE[account.role];
+  nav.querySelectorAll("[data-workspace-view-button]").forEach((button) => {
+    button.hidden = Boolean(allowedViews && !allowedViews.includes(button.dataset.workspaceViewButton));
+  });
+  nav.querySelectorAll(".workspace-nav-group-label").forEach((label) => {
+    let item = label.nextElementSibling;
+    let hasVisiblePage = false;
+    while (item && !item.classList.contains("workspace-nav-group-label")) {
+      if (item.matches("[data-workspace-view-button]") && !item.hidden) hasVisiblePage = true;
+      item = item.nextElementSibling;
+    }
+    label.hidden = !hasVisiblePage;
+  });
+}
+
 function renderSidebarAccountSummary() {
   const container = $("#sidebar-account-summary");
   if (!container) return;
   const account = activeAccount();
+  updateRoleNavigation(account);
   container.innerHTML = account
     ? `<span>Signed in as</span><strong>${escapeHTML(account.displayName)}</strong><small>${escapeHTML(account.role)}</small>`
-    : '<span>Account</span><strong>Not signed in</strong><small>Use the profile menu above</small>';
+    : '<span>Demo mode</span><strong>Sample projects</strong><small>Sign in to use your workplace</small>';
 }
 
 function renderAll() {
@@ -1422,7 +1467,7 @@ loadStoredEvaluations();
 configureTestMode();
 bindEvents();
 renderAll();
-setActiveView(TEST_MODE ? "tests" : "manager");
+setActiveView(defaultWorkspaceView());
 
 document.body.classList.add("js-ready");
 const revealGroups = $$(".reveal-group");
@@ -1466,7 +1511,7 @@ function renderShortlistWorkspace() {
   if (!workspace) return;
   const shortlisted = shortlistedProposals();
   const cards = shortlisted.map((proposal) => '<article class="shortlist-project-card is-selected"><div><span class="objective-tag">' + escapeHTML(proposal.objective) + '</span><h4>' + escapeHTML(proposal.title) + '</h4><p>' + escapeHTML(proposal.owner) + ' · ' + money(proposal.cost) + ' · ' + proposal.staff + ' FTE</p></div>' + assessmentProfile(proposal) + '<button type="button" class="text-button" data-remove-formal-shortlist="' + escapeHTML(proposal.id) + '">Remove from Shortlist</button></article>').join("");
-  workspace.innerHTML = '<section class="shortlist-summary"><div><p class="section-kicker">Formal Shortlist</p><h4>' + shortlisted.length + ' project' + (shortlisted.length === 1 ? '' : 's') + ' retained</h4><p>Projects are added manually after comparison. This saved list has no four-project limit.</p></div><div><button type="button" class="solid-button" data-shortlist-open-builder>Build Candidate Portfolio</button><button type="button" class="outline-button" data-shortlist-open-comparison>Open Comparison</button></div></section>' + (cards ? '<div class="shortlist-project-grid">' + cards + '</div>' : '<div class="workspace-empty"><p class="section-kicker">Formal Shortlist</p><h4>No projects have been shortlisted yet.</h4><p>Compare two to four evaluated proposals, then manually add suitable projects here.</p><button type="button" class="solid-button" data-shortlist-open-comparison>Open Comparison</button><button type="button" class="text-button" data-shortlist-back-overview>Go to Project Overview</button></div>');
+  workspace.innerHTML = '<section class="shortlist-summary"><div><p class="section-kicker">Formal Shortlist</p><h4>' + shortlisted.length + ' project' + (shortlisted.length === 1 ? '' : 's') + ' retained</h4><p>Projects are added manually after comparison. This saved list has no four-project limit.</p></div><div><button type="button" class="solid-button" data-shortlist-open-builder>Build Candidate Portfolio</button><button type="button" class="outline-button" data-shortlist-open-comparison>Open Comparison</button></div></section>' + (cards ? '<div class="shortlist-project-grid">' + cards + '</div>' : '<div class="workspace-empty"><p class="section-kicker">Formal Shortlist</p><h4>No projects have been shortlisted yet.</h4><p>View one evaluated proposal’s radar profile or compare two to four, then manually add suitable projects here.</p><button type="button" class="solid-button" data-shortlist-open-comparison>Open Comparison</button><button type="button" class="text-button" data-shortlist-back-overview>Go to Project Overview</button></div>');
   workspace.querySelectorAll('[data-remove-formal-shortlist]').forEach((button) => button.addEventListener("click", () => toggleFormalShortlist(button.dataset.removeFormalShortlist, false)));
   workspace.querySelectorAll('[data-shortlist-open-comparison]').forEach((button) => button.addEventListener("click", () => setActiveView("comparison")));
   workspace.querySelector('[data-shortlist-open-builder]')?.addEventListener("click", () => setActiveView("scenarios"));
@@ -1478,8 +1523,11 @@ function renderCriterionInsights() {
   if (!workspace) return;
   const evaluated = proposals.filter(isEvaluated);
   if (!evaluated.length) {
-    workspace.innerHTML = '<div class="workspace-empty"><p class="section-kicker">Criterion Insights</p><h4>No completed evaluation yet.</h4><p>Complete all five 1–5 ratings and reviewer rationales before viewing criterion insights.</p><button type="button" class="solid-button" data-insights-open-evaluation>Open Project Evaluation</button><button type="button" class="text-button" data-insights-back-overview>Back to Project Overview</button></div>';
-    workspace.querySelector('[data-insights-open-evaluation]').addEventListener("click", () => setActiveView("reviewer"));
+    const evaluationAction = accountCanView("reviewer")
+      ? '<button type="button" class="solid-button" data-insights-open-evaluation>Open Project Evaluation</button>'
+      : '<p class="insights-review-note">A reviewer needs to complete an evaluation before portfolio evidence is available.</p>';
+    workspace.innerHTML = '<div class="workspace-empty"><p class="section-kicker">Criterion Insights</p><h4>No completed evaluation yet.</h4><p>Complete all five 1–5 ratings and reviewer rationales before viewing criterion insights.</p>' + evaluationAction + '<button type="button" class="text-button" data-insights-back-overview>Back to Project Overview</button></div>';
+    workspace.querySelector('[data-insights-open-evaluation]')?.addEventListener("click", () => setActiveView("reviewer"));
     workspace.querySelector('[data-insights-back-overview]').addEventListener("click", () => setActiveView("manager"));
     return;
   }
@@ -1493,8 +1541,8 @@ function renderComparisonWorkspace() {
   const workspace = $("#comparison-workspace");
   if (!workspace) return;
   const selected = selectedProposals();
-  if (selected.length < 2) {
-    workspace.innerHTML = '<div class="workspace-empty"><p class="section-kicker">Comparison selection</p><h4>' + (selected.length || "No") + ' project' + (selected.length === 1 ? "" : "s") + ' selected</h4><p>Select two to four fully evaluated proposals in Project Overview before opening the radar comparison.</p><button type="button" class="solid-button" data-open-overview>Go to Project Overview</button><button type="button" class="text-button" data-open-shortlist>View formal Shortlist</button></div>';
+  if (selected.length === 0) {
+    workspace.innerHTML = '<div class="workspace-empty"><p class="section-kicker">Comparison selection</p><h4>No projects selected</h4><p>Select one evaluated proposal for its radar profile, or two to four for a comparison.</p><button type="button" class="solid-button" data-open-overview>Go to Project Overview</button><button type="button" class="text-button" data-open-shortlist>View formal Shortlist</button></div>';
     workspace.querySelector("[data-open-shortlist]").addEventListener("click", () => setActiveView("shortlist"));
     workspace.querySelector("[data-open-overview]").addEventListener("click", () => setActiveView("manager"));
     return;
@@ -1509,6 +1557,9 @@ function renderComparisonWorkspace() {
   const header = CRITERIA.map((criterion) => '<th>' + escapeHTML(criterion.short) + '</th>').join("");
   const rows = selected.map((proposal) => '<tr><th>' + escapeHTML(proposal.title) + '</th>' + CRITERIA.map((criterion) => '<td><span class="score-cell ' + scoreClass(proposal.scores[criterion.key]) + '">' + proposal.scores[criterion.key] + '</span></td>').join("") + '<td>' + money(proposal.cost) + '</td><td>' + proposal.staff + ' FTE</td><td>' + scenarioLink(proposal) + '</td></tr>').join("");
   workspace.innerHTML = '<div class="comparison-selected-strip">' + cards + '</div><div class="comparison-stage"><section class="comparison-radar-panel"><div class="comparison-panel-heading"><p class="section-kicker">Five-criterion profile</p><strong>Overlay view</strong></div><div class="workspace-radar">' + radarSVG(selected) + '</div><div class="workspace-legend">' + legend + '</div></section><aside class="comparison-tradeoffs"><p class="section-kicker">Recorded strengths</p><h4>Read the trade-offs, not a winner.</h4><p>The chart helps the Portfolio Manager discuss the highest recorded ratings, cost, resource limits, and reviewer evidence.</p><ul>' + strengths + '</ul><button type="button" class="outline-button" data-open-shortlist>View formal Shortlist</button></aside></div><div class="comparison-score-table"><div class="comparison-panel-heading"><p class="section-kicker">Side-by-side detail</p><div><button type="button" class="text-button" data-open-overview>Change comparison selection</button><button type="button" class="text-button" data-open-shortlist>View formal Shortlist</button></div></div><div class="comparison-table-wrap"><table class="comparison-table"><thead><tr><th>Project</th>' + header + '<th>Cost</th><th>Staff</th><th>Scenario</th></tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+  workspace.querySelector(".comparison-radar-panel .comparison-panel-heading strong").textContent = selected.length === 1 ? "Single project" : "Overlay view";
+  workspace.querySelector(".comparison-score-table .section-kicker").textContent = selected.length === 1 ? "Criterion ratings" : "Side-by-side detail";
+  if (selected.length === 1) workspace.querySelector(".comparison-tradeoffs > p:not(.section-kicker)").textContent = "This is the project’s five-criterion profile. Ratings are shown separately; PPM does not calculate a total score or select a winner.";
   workspace.querySelectorAll("[data-add-formal-shortlist]").forEach((button) => button.addEventListener("click", () => toggleFormalShortlist(button.dataset.addFormalShortlist, true)));
   workspace.querySelectorAll("[data-remove-comparison-project]").forEach((button) => button.addEventListener("click", () => toggleComparisonSelection(button.dataset.removeComparisonProject, false)));
   workspace.querySelectorAll("[data-open-overview]").forEach((button) => button.addEventListener("click", () => setActiveView("manager")));
@@ -1792,13 +1843,13 @@ function renderReportWorkspace() {
 }
 
 function openComparison() {
-  if (selectedProposals().length < 2) { window.alert("Choose two to four evaluated projects before comparing them."); return; }
+  if (selectedProposals().length < 1) { window.alert("Select one evaluated project to view its radar profile, or select two to four to compare."); return; }
   setActiveView("comparison");
 }
 
 function setActiveView(view) {
   const knownViews = ["organisation", "proposer", "reviewer", "manager", "shortlist", "comparison", "insights", "scenarios", "decisions", "reports", "tests"];
-  if (!knownViews.includes(view)) return;
+  if (!knownViews.includes(view) || !accountCanView(view)) return;
   state.activeView = view;
   $$('[data-workspace-view]').forEach((section) => { section.hidden = section.dataset.workspaceView !== view; });
   $$('[data-workspace-view-button]').forEach((button) => { if (button.dataset.workspaceViewButton === view) button.setAttribute("aria-current", "page"); else button.removeAttribute("aria-current"); });

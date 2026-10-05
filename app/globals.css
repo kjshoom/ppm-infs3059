@@ -854,6 +854,20 @@ body.js-ready .reveal-group.is-visible .reveal { transition-delay: 0ms; }
 .workspace-brand small { margin-top: 2px; color: #bbbbae; font-size: 8px; font-weight: 700; letter-spacing: .025em; }
 .workspace-nav-label { margin: 24px 5px 8px; color: #a4a49b; font-size: 8px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
 .workspace-nav { display: grid; gap: 3px; }
+.workspace-nav [hidden] { display: none !important; }
+.guest-demo-banner { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; width: min(510px, calc(100% - 48px)); margin: 12px 24px 0 auto; padding: 11px 15px; background: #fff; color: #111; border: 1px solid #deddd7; border-left: 4px solid var(--yellow); box-shadow: 0 4px 16px #1111; }
+.guest-demo-banner[hidden] { display: none; }
+.guest-demo-mark { display: flex; align-items: center; gap: 6px; color: #77766f; font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+.guest-demo-mark i { width: 7px; height: 7px; border-radius: 50%; background: var(--yellow); }
+.guest-demo-copy { min-width: 0; }
+.guest-demo-copy strong, .guest-demo-copy span { display: block; }
+.guest-demo-copy strong { font-size: 13px; line-height: 1.3; }
+.guest-demo-copy span { margin-top: 3px; color: #686861; font-size: 11px; line-height: 1.4; }
+.guest-demo-link { display: inline-flex; align-items: center; gap: 7px; padding: 8px 0 8px 10px; color: var(--ink); font-size: 12px; font-weight: 750; text-decoration: none; white-space: nowrap; }
+.guest-demo-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.guest-demo-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.guest-demo button:disabled { cursor: not-allowed; opacity: .5; }
+@media (max-width: 600px) { .guest-demo-banner { width: auto; margin: 8px 10px 0; grid-template-columns: auto minmax(0, 1fr); gap: 8px 12px; padding: 10px 12px; } .guest-demo-mark { grid-column: 1; grid-row: 1; } .guest-demo-copy { grid-column: 2; grid-row: 1; } .guest-demo-copy span { font-size: 10px; } .guest-demo-link { grid-column: 2; grid-row: 2; justify-self: start; padding: 2px 0 0; } }
 .workspace-nav-group-label { margin: 16px 8px 5px; color: #a4a49b; font-size: 8px; font-weight: 850; letter-spacing: .1em; line-height: 1.2; text-transform: uppercase; }
 .workspace-nav-group-label:first-child { margin-top: 4px; }
 .workspace-nav button, .workspace-setting { display: grid; grid-template-columns: 28px minmax(0, 1fr); min-height: 42px; align-items: center; width: 100%; border: 1px solid transparent; background: transparent; color: #e7e7de; padding: 0 8px; cursor: pointer; font: inherit; font-size: 10px; font-weight: 800; letter-spacing: -.01em; text-align: left; }

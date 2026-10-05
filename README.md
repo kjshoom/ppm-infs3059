@@ -14,13 +14,15 @@ Open `index.html`, or run `python3 -m http.server 4173` and visit `http://127.0.
 1. **Organisation** sets strategic objectives, budget, and available staff.
 2. **Proposer** enters a standard IT project proposal: description, benefits, cost, staff, timeline, and risks.
 3. **Reviewer** records five separate 1–5 ratings and a reason for each one.
-4. **Portfolio manager** filters, compares two to four projects, checks a Scenario A or B against budget and staff, then records a human decision.
+4. **Portfolio manager** filters projects, views one-project radar profiles or compares two to four projects, checks a Scenario A or B against budget and staff, then records a human decision.
 
 Objectives entered in Organisation setup are available in the proposal form. Data is saved only in the current browser with local storage. The optional Test MVP mode uses temporary test data in the current tab.
 
-The role tabs demonstrate the workflow; they are not permission controls. The prototype does not create an overall score, automatic ranking, recommended portfolio, or automatic final decision.
+After sign-in, the saved role filters the workspace screens: Project Proposers see proposal entry, Reviewers see evaluation, and Portfolio Managers see Investment Context and the portfolio screens (04–09). This is a prototype interface filter, not a security boundary. The prototype does not create an overall score, automatic ranking, recommended portfolio, or automatic final decision.
 
 Account sign-in can run in browser-only mode or use the Java API in `backend/`. In browser-only mode, accounts stay in that browser. When a shared API is configured, account credentials and profile details are stored by the API and can be used to sign in from another device. Proposal, review, organisation, and portfolio data still stay in the current browser.
+
+Visitors without an account role see a read-only demo with sample projects. They can search, inspect, and compare samples or start the Live demo tour. Proposal submission, evaluations, shortlist changes, scenario editing, and decisions require sign-in. The guest demo does not read or write saved portfolio data.
 
 After signing in, open the profile circle and choose **Manage your PPM account** to update the name, email, or workspace role. The role is a prototype preference, not an access-control permission. Account settings remain outside the workplace workflow; the workplace sidebar no longer has an Account screen.
 
