@@ -10,9 +10,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
@@ -28,14 +32,22 @@ class AuthService {
 
     private final JdbcTemplate jdbc;
     private final PasswordEncoder passwordEncoder;
+    private final ObjectMapper objectMapper;
     private final long sessionHours;
 
-    AuthService(JdbcTemplate jdbc, PasswordEncoder passwordEncoder,
+    AuthService(JdbcTemplate jdbc, PasswordEncoder passwordEncoder, ObjectMapper objectMapper,
                 @Value("${ppm.session-hours:168}") long sessionHours) {
         this.jdbc = jdbc;
         this.passwordEncoder = passwordEncoder;
+        this.objectMapper = objectMapper;
         this.sessionHours = Math.max(1, Math.min(sessionHours, 24 * 30));
     }
+
+    private static final Set<String> WORKSPACE_KEYS = Set.of(
+            "ppm-organisation", "ppm-v2-custom-proposals", "ppm-v2-evaluation-comments",
+            "ppm-v2-shortlist", "ppm-v2-scenarios", "ppm-v2-decisions",
+            "ppm-v2-scenario-decisions", "ppm-v2-removed-proposals");
+    private static final int MAX_WORKSPACE_CHARACTERS = 2_000_000;
 
     @Transactional
     AuthResponse register(RegisterRequest request) {
@@ -72,6 +84,79 @@ class AuthService {
 
     UserResponse currentUser(String bearerToken) {
         return userForSession(bearerToken).toResponse();
+    }
+
+    WorkspaceResponse readWorkspace(String bearerToken) {
+        StoredUser user = userForSession(bearerToken);
+        List<StoredWorkspace> rows = jdbc.query(
+                "SELECT workspace_json, version FROM ppm_workspace_data WHERE user_id = ?",
+                (result, row) -> new StoredWorkspace(result.getString("workspace_json"), result.getLong("version")),
+                user.id());
+        if (rows.isEmpty()) return new WorkspaceResponse(Map.of(), 0);
+        try {
+            Map<String, String> data = objectMapper.readValue(rows.get(0).json(), new TypeReference<>() {});
+            return new WorkspaceResponse(data, rows.get(0).version());
+        } catch (JacksonException exception) {
+            throw new IllegalStateException("Saved workspace data could not be read.", exception);
+        }
+    }
+
+    @Transactional
+    WorkspaceResponse saveWorkspace(String bearerToken, WorkspaceRequest request) {
+        StoredUser user = userForSession(bearerToken);
+        Map<String, String> data = validateWorkspace(request);
+        String json;
+        try {
+            json = objectMapper.writeValueAsString(data);
+        } catch (JacksonException exception) {
+            throw new AuthException(HttpStatus.BAD_REQUEST, "Workspace data could not be saved.");
+        }
+        if (json.length() > MAX_WORKSPACE_CHARACTERS) {
+            throw new AuthException(HttpStatus.PAYLOAD_TOO_LARGE, "Workspace data is too large to sync.");
+        }
+
+        Long expectedVersion = request.expectedVersion() == null ? 0L : request.expectedVersion();
+        List<Long> versions = jdbc.query("SELECT version FROM ppm_workspace_data WHERE user_id = ?",
+                (result, row) -> result.getLong("version"), user.id());
+        Instant now = Instant.now();
+        if (versions.isEmpty()) {
+            if (expectedVersion != 0) throw workspaceConflict();
+            try {
+                jdbc.update("INSERT INTO ppm_workspace_data (user_id, workspace_json, version, updated_at) VALUES (?, ?, 1, ?)",
+                        user.id(), json, java.sql.Timestamp.from(now));
+            } catch (DuplicateKeyException exception) {
+                throw workspaceConflict();
+            }
+            return new WorkspaceResponse(data, 1);
+        }
+
+        long currentVersion = versions.get(0);
+        if (expectedVersion != currentVersion) throw workspaceConflict();
+        int updated = jdbc.update(
+                "UPDATE ppm_workspace_data SET workspace_json = ?, version = version + 1, updated_at = ? WHERE user_id = ? AND version = ?",
+                json, java.sql.Timestamp.from(now), user.id(), expectedVersion);
+        if (updated != 1) throw workspaceConflict();
+        return new WorkspaceResponse(data, currentVersion + 1);
+    }
+
+    private Map<String, String> validateWorkspace(WorkspaceRequest request) {
+        if (request == null || request.data() == null || request.expectedVersion() != null && request.expectedVersion() < 0) {
+            throw new AuthException(HttpStatus.BAD_REQUEST, "Workspace data is incomplete.");
+        }
+        if (request.data().size() > 500) throw new AuthException(HttpStatus.BAD_REQUEST, "Workspace has too many saved items.");
+        for (Map.Entry<String, String> entry : request.data().entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            boolean allowed = key != null && (WORKSPACE_KEYS.contains(key) || key.startsWith("ppm-evaluation-") || key.startsWith("ppm-note-"));
+            if (!allowed || value == null || value.length() > MAX_WORKSPACE_CHARACTERS) {
+                throw new AuthException(HttpStatus.BAD_REQUEST, "Workspace contains an unsupported or invalid item.");
+            }
+        }
+        return Map.copyOf(request.data());
+    }
+
+    private AuthException workspaceConflict() {
+        return new AuthException(HttpStatus.CONFLICT, "This workspace changed on another device. Reload the workplace before saving again.");
     }
 
     @Transactional

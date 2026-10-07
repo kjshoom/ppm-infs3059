@@ -21,6 +21,7 @@
       window.PPMGuestDemo = !user || !["Project Proposer", "Reviewer", "Portfolio Manager"].includes(user.role);
       document.body.classList.toggle("guest-demo", window.PPMGuestDemo);
       document.querySelector("#guest-demo-banner").hidden = !window.PPMGuestDemo;
+      await window.PPMWorkspaceSync?.load();
       const response = await fetch("./index.html", { cache: "no-store" });
       if (!response.ok) throw new Error("The workplace template could not be loaded.");
       const source = new DOMParser().parseFromString(await response.text(), "text/html");
@@ -33,7 +34,7 @@
       source.querySelectorAll("dialog.modal").forEach((dialog) => document.body.append(dialog.cloneNode(true)));
       loading.hidden = true;
 
-      await loadScript("./app.js?v=20261006-workplace-home-v1");
+      await loadScript("./app.js?v=20261008-workspace-sync-v1");
       if (window.PPMGuestDemo) await loadScript("./guest-demo.js?v=20261005-v1");
       await loadScript("./public/test-feedback.js?v=20261004-workplace-v1");
       await loadScript("./guided-tour.js?v=20261006-workplace-home-v1");

@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.regex.Matcher;
@@ -152,6 +153,60 @@ class AuthFlowTest {
                 .andExpect(status().isOk()).andReturn();
 
         assertThat(preflight.getResponse().getHeader("Access-Control-Allow-Methods")).contains("DELETE");
+    }
+
+    @Test
+    void workspaceDataSyncsAcrossSessionsAndIsPrivateToItsAccount() throws Exception {
+        String email = "workspace-" + System.nanoTime() + "@example.com";
+        String signup = "{\"name\":\"Workspace User\",\"email\":\"" + email + "\",\"password\":\"project-ppm-2026\",\"role\":\"Reviewer\"}";
+        MvcResult created = http.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(signup))
+                .andExpect(status().isCreated()).andReturn();
+        String firstToken = field(created.getResponse().getContentAsString(), "token");
+
+        http.perform(get("/api/workspace").header("Authorization", "Bearer " + firstToken))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.version").value(0))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data").isEmpty());
+
+        String save = "{\"expectedVersion\":0,\"data\":{\"ppm-organisation\":\"{\\\"name\\\":\\\"Shared IT\\\"}\",\"ppm-evaluation-project-a\":\"{\\\"reviewedBy\\\":\\\"Reviewer\\\"}\"}}";
+        http.perform(put("/api/workspace").header("Authorization", "Bearer " + firstToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(save))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.version").value(1));
+
+        String login = "{\"email\":\"" + email + "\",\"password\":\"project-ppm-2026\"}";
+        MvcResult signedIn = http.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(login))
+                .andExpect(status().isOk()).andReturn();
+        String secondToken = field(signedIn.getResponse().getContentAsString(), "token");
+        http.perform(get("/api/workspace").header("Authorization", "Bearer " + secondToken))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data['ppm-organisation']").value("{\"name\":\"Shared IT\"}"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data['ppm-evaluation-project-a']").value("{\"reviewedBy\":\"Reviewer\"}"));
+
+        String otherSignup = "{\"name\":\"Another User\",\"email\":\"other-" + System.nanoTime() + "@example.com\",\"password\":\"project-ppm-2026\",\"role\":\"Project Proposer\"}";
+        MvcResult otherCreated = http.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(otherSignup))
+                .andExpect(status().isCreated()).andReturn();
+        String otherToken = field(otherCreated.getResponse().getContentAsString(), "token");
+        http.perform(get("/api/workspace").header("Authorization", "Bearer " + otherToken))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.version").value(0))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data").isEmpty());
+
+        http.perform(put("/api/workspace").header("Authorization", "Bearer " + firstToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(save))
+                .andExpect(status().isConflict());
+        http.perform(get("/api/workspace")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void workspacePutAllowsBrowserPreflightRequests() throws Exception {
+        MvcResult preflight = http.perform(options("/api/workspace")
+                        .header("Origin", "https://kjshoom.github.io")
+                        .header("Access-Control-Request-Method", "PUT")
+                        .header("Access-Control-Request-Headers", "authorization,content-type"))
+                .andExpect(status().isOk()).andReturn();
+
+        assertThat(preflight.getResponse().getHeader("Access-Control-Allow-Methods")).contains("PUT");
     }
 
     private static String field(String json, String name) {

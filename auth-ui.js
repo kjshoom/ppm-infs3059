@@ -93,6 +93,21 @@
       localStorage.setItem(APP_ACCOUNTS_KEY, JSON.stringify(accounts.filter((account) => account.id !== userId)));
     }
     if (localStorage.getItem(APP_ACTIVE_KEY) === JSON.stringify(userId)) localStorage.removeItem(APP_ACTIVE_KEY);
+    if (localStorage.getItem("ppm-v2-workspace-owner") === userId) {
+      const exactWorkspaceKeys = new Set([
+        "ppm-organisation", "ppm-v2-custom-proposals", "ppm-v2-evaluation-comments",
+        "ppm-v2-shortlist", "ppm-v2-scenarios", "ppm-v2-decisions",
+        "ppm-v2-scenario-decisions", "ppm-v2-removed-proposals"
+      ]);
+      const workspaceKeys = [];
+      for (let index = 0; index < localStorage.length; index += 1) {
+        const key = localStorage.key(index);
+        if (key && (exactWorkspaceKeys.has(key) || key.startsWith("ppm-evaluation-") || key.startsWith("ppm-note-"))) workspaceKeys.push(key);
+      }
+      workspaceKeys.forEach((key) => localStorage.removeItem(key));
+      localStorage.removeItem("ppm-v2-workspace-owner");
+      localStorage.removeItem("ppm-v2-workspace-pending");
+    }
   }
 
   function escapeHTML(value) {
@@ -206,7 +221,7 @@
     avatar.textContent = avatarName(user.name);
     if (storageNote) {
       storageNote.textContent = apiBase()
-        ? "Changes are saved to your PPM account and can be used when you sign in on another device."
+        ? "Your profile and workplace data are saved to this account and sync when you sign in on another device."
         : "Changes are saved in this browser only. They will not sync to another device until a shared account service is connected.";
     }
 
@@ -351,7 +366,7 @@
 
     if (storageNote) {
       storageNote.innerHTML = sharedAccounts
-        ? "<strong>Shared account</strong><p>Account details are verified by the PPM account service, so you can sign in from another device. Project and portfolio data remain stored in this browser.</p>"
+        ? "<strong>Shared account</strong><p>Sign in with the same account on another device to open your synced proposals, evaluations, comments, and portfolio.</p>"
         : "<strong>Prototype account storage</strong><p>Until a shared account service is connected, accounts are saved in this browser only. They will not work in another browser or on another device.</p>";
     }
 
@@ -424,7 +439,7 @@
     setMode();
   }
 
-  window.PPMAuth = { currentUser, syncWorkspaceProfile, apiBase };
+  window.PPMAuth = { currentUser, syncWorkspaceProfile, apiBase, request: apiRequest, token: remoteToken };
   window.PPMAuthReady = new Promise((resolve) => {
     const start = () => {
       initAuthPage();

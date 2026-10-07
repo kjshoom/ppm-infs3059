@@ -244,6 +244,7 @@ const STORAGE = {
   activeAccount: "ppm-v2-active-account",
   organisation: "ppm-organisation",
   customProposals: "ppm-v2-custom-proposals",
+  evaluationComments: "ppm-v2-evaluation-comments",
   shortlist: "ppm-v2-shortlist",
   scenarios: "ppm-v2-scenarios",
   decisions: "ppm-v2-decisions",
@@ -254,8 +255,18 @@ const activeStorage = TEST_MODE ? window.sessionStorage : window.localStorage;
 const scopedStorageKey = (key) => TEST_MODE ? `${TEST_PREFIX}${key}` : key;
 const storage = {
   get: (key) => GUEST_DEMO ? null : activeStorage.getItem(scopedStorageKey(key)),
-  set: (key, value) => { if (!GUEST_DEMO) activeStorage.setItem(scopedStorageKey(key), value); },
-  remove: (key) => { if (!GUEST_DEMO) activeStorage.removeItem(scopedStorageKey(key)); }
+  set: (key, value) => {
+    if (!GUEST_DEMO) {
+      activeStorage.setItem(scopedStorageKey(key), value);
+      if (!TEST_MODE) window.PPMWorkspaceSync?.changed();
+    }
+  },
+  remove: (key) => {
+    if (!GUEST_DEMO) {
+      activeStorage.removeItem(scopedStorageKey(key));
+      if (!TEST_MODE) window.PPMWorkspaceSync?.changed();
+    }
+  }
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -342,6 +353,7 @@ function normaliseProposal(raw) {
     risks: String(raw.risks || "No risks or dependencies recorded."),
     scores: raw.scores && typeof raw.scores === "object" ? { ...raw.scores } : {},
     rationales: raw.rationales && typeof raw.rationales === "object" ? { ...raw.rationales } : {},
+    reviewedBy: String(raw.reviewedBy || ""),
     missing: Array.isArray(raw.missing) ? raw.missing.map(String) : [],
     isCustom: Boolean(raw.isCustom),
     scenarioGroup: raw.scenarioGroup === "A" || raw.scenarioGroup === "B" ? raw.scenarioGroup : ""
@@ -483,9 +495,76 @@ function persistEvaluation(proposal) {
   storage.set(`ppm-evaluation-${proposal.id}`, JSON.stringify({
     scores: proposal.scores,
     rationales: proposal.rationales,
-    status: proposal.status
+    status: proposal.status,
+    reviewedBy: proposal.reviewedBy
   }));
   if (proposal.isCustom) persistCustomProposals();
+}
+
+let guestEvaluationCommentCache = {};
+
+function evaluationComments(proposalId) {
+  if (GUEST_DEMO) return Array.isArray(guestEvaluationCommentCache[proposalId]) ? guestEvaluationCommentCache[proposalId] : [];
+  const comments = readStoredJSON(STORAGE.evaluationComments, {});
+  return Array.isArray(comments[proposalId]) ? comments[proposalId] : [];
+}
+
+function persistEvaluationComment(proposalId, comment) {
+  if (GUEST_DEMO) {
+    guestEvaluationCommentCache[proposalId] = [...evaluationComments(proposalId), comment];
+    return;
+  }
+  const comments = readStoredJSON(STORAGE.evaluationComments, {});
+  comments[proposalId] = [...(Array.isArray(comments[proposalId]) ? comments[proposalId] : []), comment];
+  storage.set(STORAGE.evaluationComments, JSON.stringify(comments));
+}
+
+function renderEvaluationComments(proposal) {
+  const section = $("#evaluation-comments");
+  if (!section) return;
+  const ready = isEvaluated(proposal);
+  section.hidden = !ready;
+  if (!ready) return;
+  const comments = evaluationComments(proposal.id);
+  $("#evaluation-comment-list").innerHTML = comments.length
+    ? comments.map((comment) => `<article class="evaluation-comment"><header><strong>${escapeHTML(comment.author || "Reviewer")}</strong><time>${escapeHTML(comment.date || "")}</time></header><p>${escapeHTML(comment.text)}</p></article>`).join("")
+    : '<p class="evaluation-comments-empty">No comments on this evaluation yet.</p>';
+}
+
+function lockCompletedReview(proposal) {
+  const locked = isEvaluated(proposal) && !TEST_MODE;
+  $("#review-score-form")?.querySelectorAll("[data-review-score], [data-review-rationale]").forEach((control) => { control.disabled = locked; });
+  $("#review-notes").disabled = locked;
+  $("#save-note").disabled = locked;
+  $("#save-note").textContent = locked ? "Evaluation already recorded" : "Save evaluation";
+  $("#evaluation-locked-note").hidden = !locked;
+  $("#evaluation-locked-note").textContent = locked
+    ? `Evaluation recorded${proposal.reviewedBy ? ` by ${proposal.reviewedBy}` : ""}. The original ratings are kept; add comments below if needed.`
+    : "";
+}
+
+function saveEvaluationComment() {
+  const proposal = proposals.find((item) => item.id === reviewDialog.dataset.proposalId);
+  const input = $("#evaluation-comment-input");
+  const message = $("#evaluation-comment-message");
+  const text = input.value.trim();
+  if (!proposal || !isEvaluated(proposal)) {
+    message.textContent = "Save the five-criterion evaluation before commenting.";
+    return;
+  }
+  if (!text) {
+    message.textContent = "Write a comment before adding it.";
+    input.focus();
+    return;
+  }
+  persistEvaluationComment(proposal.id, {
+    author: activeAccount()?.displayName || "Reviewer",
+    text,
+    date: new Date().toLocaleString("en-AU", { dateStyle: "medium", timeStyle: "short" })
+  });
+  input.value = "";
+  message.textContent = "Comment added to this evaluation.";
+  renderEvaluationComments(proposal);
 }
 
 function loadStoredEvaluations() {
@@ -495,6 +574,7 @@ function loadStoredEvaluations() {
     if (saved.scores && typeof saved.scores === "object") proposal.scores = { ...proposal.scores, ...saved.scores };
     if (saved.rationales && typeof saved.rationales === "object") proposal.rationales = { ...proposal.rationales, ...saved.rationales };
     if (saved.status) proposal.status = String(saved.status);
+    if (saved.reviewedBy) proposal.reviewedBy = String(saved.reviewedBy);
   });
 }
 
@@ -951,6 +1031,7 @@ function recordDecision(id, decision) {
 function openReview(id) {
   const proposal = proposals.find((item) => item.id === id);
   if (!proposal) return;
+  const reviewIsLocked = isEvaluated(proposal) && !TEST_MODE;
   reviewDialog.dataset.proposalId = id;
   $("#review-dialog-title").textContent = proposal.title;
   $("#review-score-form").innerHTML = CRITERIA.map((criterion, criterionIndex) => {
@@ -967,18 +1048,22 @@ function openReview(id) {
       return `<li><strong>${escapeHTML(scoreLabel)}</strong><span>${escapeHTML(description)}</span></li>`;
     }).join("");
     const riskNotice = isRisk ? '<p class="risk-direction-note"><strong>Risk scoring direction</strong><span>Higher score means lower and more manageable risk.</span></p>' : "";
-    return `<section class="review-criterion-card ${isRisk ? "is-risk" : ""}" aria-labelledby="review-criterion-${criterion.key}">
+      return `<section class="review-criterion-card ${isRisk ? "is-risk" : ""}" aria-labelledby="review-criterion-${criterion.key}">
       <div class="review-criterion-heading">
         <div><span class="criterion-number">0${criterionIndex + 1}</span><h3 id="review-criterion-${criterion.key}">${escapeHTML(guide.title)}</h3></div>
         ${riskNotice}
       </div>
-      <div class="review-rating-options" role="radiogroup" aria-label="${escapeHTML(guide.title)} rating">${ratingCards}</div>
-      <label class="review-rationale-field"><span>Rationale <small>Required</small></span><textarea data-review-rationale="${criterion.key}" rows="3" aria-label="Rationale for ${escapeHTML(guide.title)}" placeholder="Add short evidence or a reason for this rating" required>${escapeHTML(proposal.rationales[criterion.key] || "")}</textarea></label>
+      <div class="review-rating-options" role="radiogroup" aria-label="${escapeHTML(guide.title)} rating">${reviewIsLocked ? ratingCards.replaceAll(" required>", " required disabled>") : ratingCards}</div>
+      <label class="review-rationale-field"><span>Rationale <small>Required</small></span><textarea data-review-rationale="${criterion.key}" rows="3" aria-label="Rationale for ${escapeHTML(guide.title)}" placeholder="Add short evidence or a reason for this rating" ${reviewIsLocked ? "disabled" : "required"}>${escapeHTML(proposal.rationales[criterion.key] || "")}</textarea></label>
       <details class="scoring-guide"><summary><span>Scoring guide</span><small>View the formal 1–5 rubric</small></summary><ol>${guideItems}</ol></details>
     </section>`;
   }).join("");
   $("#review-notes").value = storage.get(`ppm-note-${id}`) || "";
   $("#save-message").textContent = "";
+  lockCompletedReview(proposal);
+  $("#evaluation-comment-input").value = "";
+  $("#evaluation-comment-message").textContent = "";
+  renderEvaluationComments(proposal);
   reviewDialog.showModal();
 }
 
@@ -986,6 +1071,10 @@ function saveReview() {
   const id = reviewDialog.dataset.proposalId;
   const proposal = proposals.find((item) => item.id === id);
   if (!proposal) return;
+  if (isEvaluated(proposal) && !TEST_MODE) {
+    $("#save-message").textContent = "This review is already recorded. Add a comment instead.";
+    return;
+  }
   const scores = {};
   const rationales = {};
   let complete = true;
@@ -1004,18 +1093,27 @@ function saveReview() {
   }
   proposal.scores = scores;
   proposal.rationales = rationales;
+  proposal.reviewedBy ||= activeAccount()?.displayName || "Reviewer";
   proposal.status = proposal.missing.length ? "Under review" : "Evaluated";
   persistEvaluation(proposal);
   storage.set(`ppm-note-${id}`, $("#review-notes").value.trim());
   $("#save-message").textContent = "Evaluation saved in this browser.";
+  lockCompletedReview(proposal);
+  renderEvaluationComments(proposal);
   renderAll();
 }
 
 function renderReviewQueue() {
   const ordered = [...proposals].sort((a, b) => Number(isEvaluated(a)) - Number(isEvaluated(b)) || a.title.localeCompare(b.title));
+  if (!ordered.length) {
+    $("#review-queue").innerHTML = '<div class="workspace-empty"><p class="section-kicker">Project Evaluation</p><h4>No proposals to review.</h4></div>';
+    return;
+  }
   $("#review-queue").innerHTML = ordered.map((proposal) => {
     const evaluated = isEvaluated(proposal);
-    return `<article class="review-queue-card ${evaluated ? "" : "is-awaiting"}"><div class="review-queue-card-top"><p class="section-kicker">${evaluated ? "Evaluation recorded" : "Awaiting review"}</p><span class="status-pill ${statusClass(currentStatus(proposal))}">${escapeHTML(currentStatus(proposal))}</span></div><h4>${escapeHTML(proposal.title)}</h4><p>${escapeHTML(proposal.owner)} · ${escapeHTML(proposal.objective)} · ${money(proposal.cost)} · ${proposal.staff} FTE</p><div class="queue-profile">${evaluated ? "Five ratings and reviewer rationale available." : "Five ratings and five short rationales required."}</div><div class="review-queue-actions"><button type="button" class="outline-button" data-review-queue-id="${escapeHTML(proposal.id)}">${evaluated ? "Edit evaluation" : "Start evaluation"}</button>${proposal.isCustom ? `<button type="button" class="card-remove-button" data-delete-proposal="${escapeHTML(proposal.id)}">Remove added</button>` : ""}</div></article>`;
+    const commentsCount = evaluationComments(proposal.id).length;
+    const evaluator = proposal.reviewedBy ? `Reviewed by ${escapeHTML(proposal.reviewedBy)}.` : "Evaluation is recorded.";
+    return `<article class="review-queue-card ${evaluated ? "" : "is-awaiting"}"><div class="review-queue-card-top"><p class="section-kicker">${evaluated ? "Evaluation recorded" : "Awaiting review"}</p><span class="status-pill ${evaluated ? "status-evaluated" : "status-under-review"}">${evaluated ? "Reviewed" : "Not reviewed yet"}</span></div><h4>${escapeHTML(proposal.title)}</h4><p>${escapeHTML(proposal.owner)} · ${escapeHTML(proposal.objective)} · ${money(proposal.cost)} · ${proposal.staff} FTE</p><div class="queue-profile">${evaluated ? `${evaluator} Five ratings and rationale saved${commentsCount ? ` · ${commentsCount} ${commentsCount === 1 ? "comment" : "comments"}` : ""}.` : "Review has not been completed."}</div><div class="review-queue-actions"><button type="button" class="outline-button" data-review-queue-id="${escapeHTML(proposal.id)}">${evaluated ? "View evaluation & comments" : "Start evaluation"}</button>${proposal.isCustom ? `<button type="button" class="card-remove-button" data-delete-proposal="${escapeHTML(proposal.id)}">Remove added</button>` : ""}</div></article>`;
   }).join("");
   $$('[data-review-queue-id]').forEach((button) => button.addEventListener("click", () => openReview(button.dataset.reviewQueueId)));
   bindCustomProposalDeleteButtons($("#review-queue"));
@@ -1452,6 +1550,7 @@ function bindEvents() {
   $("[data-close-dialog]").addEventListener("click", () => compareDialog.close());
   $("[data-close-review]").addEventListener("click", () => reviewDialog.close());
   $("#save-note").addEventListener("click", saveReview);
+  $("#add-evaluation-comment").addEventListener("click", saveEvaluationComment);
   [compareDialog, reviewDialog].forEach((dialog) => dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); }));
   document.addEventListener("keydown", (event) => {
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {

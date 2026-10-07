@@ -7,11 +7,15 @@
     <meta name="description" content="The Project Portfolio Management workspace." />
     <title>The workplace · PPM</title>
     <link rel="icon" href="public/favicon.svg" />
-    <link rel="stylesheet" href="app/globals.css?v=20261006-single-workspace-brand-v1" />
+    <link rel="stylesheet" href="app/globals.css?v=20261008-workspace-sync-v1" />
   </head>
   <body class="workplace-page">
     <header class="workplace-topbar">
       <div class="workplace-top-actions">
+        <div class="workspace-sync-status" id="workspace-sync-status" hidden role="status" aria-live="polite">
+          <span id="workspace-sync-message"></span>
+          <button type="button" id="workspace-sync-action" hidden>Retry</button>
+        </div>
         <button class="workplace-demo-button" type="button" data-start-live-demo>Live demo <span aria-hidden="true">↗</span></button>
         <a class="workplace-intro-link" href="./index.html">Introduction</a>
         <div class="auth-slot" id="auth-slot"></div>
@@ -25,7 +29,8 @@
     <main id="workplace-mount"></main>
     <div id="tour-layer" hidden aria-live="polite"></div>
     <script src="api-config.js?v=20261004-api-v1"></script>
-    <script src="auth-ui.js?v=20261004-account-v2"></script>
-    <script src="workplace-loader.js?v=20261006-workplace-home-v1"></script>
+    <script src="auth-ui.js?v=20261008-workspace-sync-v1"></script>
+    <script src="workspace-sync.js?v=20261008-workspace-sync-v1"></script>
+    <script src="workplace-loader.js?v=20261008-workspace-sync-v1"></script>
   </body>
 </html>

@@ -7,7 +7,7 @@
     <meta name="description" content="Manage your PPM account details." />
     <title>Your account · PPM</title>
     <link rel="icon" href="public/favicon.svg" />
-    <link rel="stylesheet" href="app/globals.css?v=20261004-account-v2" />
+    <link rel="stylesheet" href="app/globals.css?v=20261008-workspace-sync-v1" />
   </head>
   <body class="account-settings-page">
     <header class="auth-page-header">
@@ -55,7 +55,7 @@
         <div>
           <p class="section-kicker">Account removal</p>
           <h2 id="delete-account-heading">Delete account</h2>
-          <p id="delete-account-description">This permanently removes your PPM sign-in and profile. Proposal and portfolio data are stored separately in this browser and will remain.</p>
+        <p id="delete-account-description">This permanently removes your PPM sign-in, profile, and the workspace data synced to this account.</p>
         </div>
         <button class="account-delete-button" id="account-delete-open" type="button">Delete account</button>
       </section>
@@ -65,7 +65,7 @@
         <button class="account-delete-close" type="button" id="account-delete-close" aria-label="Close">×</button>
         <p class="section-kicker">This cannot be undone</p>
         <h2 id="account-delete-title">Delete your account?</h2>
-        <p id="account-delete-copy">Your sign-in and profile will be permanently removed. This does not delete proposals or portfolio data saved separately in this browser.</p>
+        <p id="account-delete-copy">Your sign-in, profile, and synced workspace data will be permanently removed from this account.</p>
         <label class="auth-field" for="account-delete-confirm">Type <strong>DELETE</strong> to confirm
           <input id="account-delete-confirm" autocomplete="off" spellcheck="false" />
         </label>
@@ -77,6 +77,6 @@
       </form>
     </dialog>
     <script src="api-config.js?v=20261004-api-v1"></script>
-    <script src="auth-ui.js?v=20261004-account-v2"></script>
+    <script src="auth-ui.js?v=20261008-workspace-sync-v1"></script>
   </body>
 </html>

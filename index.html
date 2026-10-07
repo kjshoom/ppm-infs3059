@@ -15,7 +15,7 @@
     <meta name="twitter:image" content="public/og.png" />
     <title>PPM — Project Portfolio Management</title>
     <link rel="icon" href="public/favicon.svg" />
-    <link rel="stylesheet" href="app/globals.css?v=20261004-account-v2" />
+    <link rel="stylesheet" href="app/globals.css?v=20261008-workspace-sync-v1" />
   </head>
   <body class="intro-document">
     <main id="app">
@@ -142,11 +142,11 @@
           </aside>
 
           <section class="workspace-view setup-view" data-workspace-view="organisation" hidden aria-labelledby="organisation-title">
-            <div class="view-heading investment-context-heading"><p class="section-kicker">Investment Context</p><h3 id="organisation-title">Set the context for this portfolio cycle.</h3><p>Record the scope, strategic objectives, budget, and staff capacity used throughout the current portfolio review.</p></div>
+            <div class="view-heading investment-context-heading"><p class="section-kicker">Investment Context</p><h3 id="organisation-title">Set the context for this portfolio cycle.</h3><details class="context-help"><summary aria-label="More about investment context" title="More information">i</summary><p>Set the scope, strategic objectives, budget, and staff capacity for this portfolio cycle.</p></details></div>
             <form id="organisation-form" class="setup-form investment-context-form">
               <div class="investment-context-grid">
                 <section class="context-card context-card--planning" aria-labelledby="context-planning-title">
-                  <div class="context-card-heading"><span aria-hidden="true">01</span><div><h4 id="context-planning-title">Planning Period</h4><p>Identify the portfolio cycle and its organisational context.</p></div></div>
+                  <div class="context-card-heading"><span aria-hidden="true">01</span><div><h4 id="context-planning-title">Planning Period</h4><details class="context-help context-help--inline"><summary aria-label="About the planning period" title="More information">i</summary><p>Identify the portfolio cycle and its organisational context.</p></details></div></div>
                   <label>Portfolio or cycle name<input id="org-name" name="name" maxlength="80" required /></label>
                   <div class="context-field-row">
                     <label>Start Date<input id="org-start-date" name="startDate" type="date" /></label>
@@ -159,12 +159,12 @@
                 </section>
 
                 <section class="context-card context-card--budget" aria-labelledby="context-budget-title">
-                  <div class="context-card-heading"><span aria-hidden="true">02</span><div><h4 id="context-budget-title">Total Investment Budget</h4><p>Set the total budget limit used for candidate-portfolio checks.</p></div></div>
+                  <div class="context-card-heading"><span aria-hidden="true">02</span><div><h4 id="context-budget-title">Total Investment Budget</h4><details class="context-help context-help--inline"><summary aria-label="About the total investment budget" title="More information">i</summary><p>This is the budget limit used when checking candidate portfolios.</p></details></div></div>
                   <label>Portfolio budget ($M)<input id="org-budget" name="budget" type="number" min="0" step="0.1" required /></label>
                 </section>
 
                 <section class="context-card context-card--capacity" aria-labelledby="context-capacity-title">
-                  <div class="context-card-heading"><span aria-hidden="true">03</span><div><h4 id="context-capacity-title">Available Resource Capacity</h4><p>Record available FTE for the four fixed resource types.</p></div></div>
+                  <div class="context-card-heading"><span aria-hidden="true">03</span><div><h4 id="context-capacity-title">Available Resource Capacity</h4><details class="context-help context-help--inline"><summary aria-label="About resource capacity" title="More information">i</summary><p>Record available FTE for the four fixed resource types.</p></details></div></div>
                   <p class="resource-message" id="resource-capacity-message" role="status"></p>
                   <div class="resource-capacity-list" id="resource-capacity-list"></div>
                   <div class="resource-total" aria-live="polite"><span>Total available capacity</span><strong><b id="resource-total-fte">0</b> FTE</strong><small id="resource-total-source"></small></div>
@@ -172,10 +172,10 @@
                 </section>
 
                 <section class="context-card context-card--objectives" aria-labelledby="context-objectives-title">
-                  <div class="context-card-heading"><span aria-hidden="true">04</span><div><h4 id="context-objectives-title">Strategic Investment Objectives</h4><p>Add the objectives available to project proposers in this portfolio cycle.</p></div></div>
+                  <div class="context-card-heading"><span aria-hidden="true">04</span><div><h4 id="context-objectives-title">Strategic Investment Objectives</h4><details class="context-help context-help--inline"><summary aria-label="About strategic investment objectives" title="More information">i</summary><p>Add the objectives available to project proposers in this portfolio cycle.</p></details></div></div>
                   <div class="objective-input-list" id="objective-input-list"></div>
                   <button type="button" class="outline-button add-objective-button" id="add-objective">+ Add another objective</button>
-                  <p class="context-helper">Each project proposal selects one primary strategic objective.</p>
+                  <details class="context-help context-help--inline"><summary aria-label="About strategic objectives" title="More information">i</summary><p>Each project proposal selects one primary strategic objective.</p></details>
                 </section>
               </div>
 
@@ -184,7 +184,7 @@
           </section>
 
           <section class="workspace-view proposer-view" data-workspace-view="proposer" hidden aria-labelledby="proposer-title">
-            <div class="view-heading"><p class="section-kicker">Proposal entry</p><h3 id="proposer-title">Give reviewers the information they need.</h3><p>Submit a standard IT project proposal. It stays awaiting review until all five criterion ratings and reasons are recorded.</p></div>
+            <div class="view-heading"><p class="section-kicker">Proposal entry</p><h3 id="proposer-title">Give reviewers the information they need.</h3><details class="context-help"><summary aria-label="About proposal review" title="More information">i</summary><p>A submitted proposal appears in Project Evaluation as “Not reviewed yet” until a reviewer completes all five ratings and rationales.</p></details></div>
             <form id="proposal-form" class="proposal-form">
               <div class="proposal-form-grid">
                 <label>Project name<input name="title" maxlength="100" required /></label>
@@ -202,7 +202,7 @@
           </section>
 
           <section class="workspace-view reviewer-view" data-workspace-view="reviewer" hidden aria-labelledby="reviewer-title">
-            <div class="view-heading view-heading--split"><div><p class="section-kicker">Reviewer queue</p><h3 id="reviewer-title">Assess evidence, not a single total.</h3></div><p>Each project needs five 1–5 ratings and a short reason for every rating. The system does not calculate an overall score.</p></div>
+            <div class="view-heading view-heading--split"><div><p class="section-kicker">Reviewer queue</p><h3 id="reviewer-title">Assess evidence, not a single total.</h3></div><details class="context-help"><summary aria-label="About project evaluation" title="More information">i</summary><p>Complete five 1–5 ratings with short rationales. The system does not calculate an overall score.</p></details></div>
             <div class="review-queue" id="review-queue" aria-live="polite"></div>
           </section>
 
@@ -293,32 +293,32 @@
           </section>
 
           <section class="workspace-view shortlist-view" data-workspace-view="shortlist" hidden aria-labelledby="shortlist-view-title">
-            <div class="view-heading view-heading--split"><div><p class="section-kicker">Formal candidate list</p><h3 id="shortlist-view-title">Shortlist projects after comparison.</h3></div><p>This saved list contains only projects manually retained after comparison. It has no four-project limit and does not calculate a total score or rank projects.</p></div>
+            <div class="view-heading view-heading--split"><div><p class="section-kicker">Formal candidate list</p><h3 id="shortlist-view-title">Shortlist projects after comparison.</h3></div><details class="context-help"><summary aria-label="About the shortlist" title="More information">i</summary><p>This list contains projects manually retained after comparison. It does not rank projects or calculate a total score.</p></details></div>
             <div class="shortlist-workspace" id="shortlist-workspace" aria-live="polite"></div>
           </section>
 
           <section class="workspace-view comparison-view" data-workspace-view="comparison" hidden aria-labelledby="comparison-view-title">
-            <div class="view-heading view-heading--split"><div><p class="section-kicker">Detailed comparison</p><h3 id="comparison-view-title">Compare the current project selection.</h3></div><p>Select one evaluated project to view its five-criterion radar profile, or select two to four to compare profiles. You can then manually add suitable projects to the formal Shortlist.</p></div>
+            <div class="view-heading view-heading--split"><div><p class="section-kicker">Detailed comparison</p><h3 id="comparison-view-title">Compare the current project selection.</h3></div><details class="context-help"><summary aria-label="About project comparison" title="More information">i</summary><p>One evaluated project shows its radar profile; two to four show an overlay. Add suitable projects to the Shortlist manually.</p></details></div>
             <div class="comparison-workspace" id="comparison-workspace" aria-live="polite"></div>
           </section>
 
           <section class="workspace-view insights-view" data-workspace-view="insights" hidden aria-labelledby="insights-view-title">
-            <div class="view-heading view-heading--split"><div><p class="section-kicker">Criterion Insights</p><h3 id="insights-view-title">Review the evidence behind each rating.</h3></div><p>This view uses the existing five criterion ratings and reviewer rationale. It does not calculate an overall score.</p></div>
+            <div class="view-heading view-heading--split"><div><p class="section-kicker">Criterion Insights</p><h3 id="insights-view-title">Review the evidence behind each rating.</h3></div><details class="context-help"><summary aria-label="About criterion insights" title="More information">i</summary><p>See the five criterion ratings and reviewer rationale. No overall score is calculated.</p></details></div>
             <div class="insights-workspace" id="insights-workspace" aria-live="polite"></div>
           </section>
 
           <section class="workspace-view scenarios-view" data-workspace-view="scenarios" hidden aria-labelledby="scenarios-view-title">
-            <div class="view-heading view-heading--split"><div><p class="section-kicker">Portfolio selection</p><h3 id="scenarios-view-title">Build Candidate Portfolio</h3></div><p>Create and review candidate portfolios using projects from the saved formal Shortlist.</p></div>
+            <div class="view-heading view-heading--split"><div><p class="section-kicker">Portfolio selection</p><h3 id="scenarios-view-title">Build Candidate Portfolio</h3></div><details class="context-help"><summary aria-label="About candidate portfolios" title="More information">i</summary><p>Build a candidate portfolio from projects saved to the formal Shortlist.</p></details></div>
             <div class="scenario-workspace" id="scenario-workspace" aria-live="polite"></div>
           </section>
 
           <section class="workspace-view decisions-view" data-workspace-view="decisions" hidden aria-labelledby="decisions-view-title">
-            <div class="view-heading view-heading--split"><div><p class="section-kicker">Decision &amp; governance</p><h3 id="decisions-view-title">Portfolio Decision</h3></div><p>Record a human decision for one saved candidate portfolio without changing its project evaluations.</p></div>
+            <div class="view-heading view-heading--split"><div><p class="section-kicker">Decision &amp; governance</p><h3 id="decisions-view-title">Portfolio Decision</h3></div><details class="context-help"><summary aria-label="About portfolio decisions" title="More information">i</summary><p>Record a human decision for one saved candidate portfolio. Project evaluations remain unchanged.</p></details></div>
             <div class="decision-workspace" id="decision-workspace" aria-live="polite"></div>
           </section>
 
           <section class="workspace-view reports-view" data-workspace-view="reports" hidden aria-labelledby="reports-view-title">
-            <div class="view-heading view-heading--split"><div><p class="section-kicker">Portfolio selection</p><h3 id="reports-view-title">Portfolio Review</h3></div><p>Inspect one saved candidate portfolio before continuing to project-level decisions.</p></div>
+            <div class="view-heading view-heading--split"><div><p class="section-kicker">Portfolio selection</p><h3 id="reports-view-title">Portfolio Review</h3></div><details class="context-help"><summary aria-label="About portfolio review" title="More information">i</summary><p>Inspect a saved candidate portfolio and its resource constraints before recording a decision.</p></details></div>
             <div class="report-workspace" id="report-workspace" aria-live="polite"></div>
           </section>
             </div>
@@ -346,15 +346,22 @@
         <button class="icon-button" type="button" data-close-review aria-label="Close review">×</button>
       </div>
       <div class="review-form">
-        <div class="review-reminder"><strong>Five separate criteria</strong><span>Ratings describe the project profile. No overall score or automatic ranking is generated.</span></div>
+        <details class="context-help evaluation-score-help"><summary aria-label="About scoring this evaluation" title="More information">i</summary><p>Rate all five criteria independently. Ratings describe the project profile; the system does not calculate an overall score or automatic ranking.</p></details>
         <div class="review-score-form" id="review-score-form"></div>
+        <p class="evaluation-locked-note" id="evaluation-locked-note" hidden></p>
         <label>Reviewer rationale<textarea id="review-notes" rows="6" placeholder="Explain the ratings, evidence, concerns, or information to request…"></textarea></label>
-        <button type="button" class="solid-button" id="save-note">Save evaluation locally</button>
+        <section class="evaluation-comments" id="evaluation-comments" aria-labelledby="evaluation-comments-title" hidden>
+          <header><div><p class="section-kicker">Evaluation discussion</p><h3 id="evaluation-comments-title">Comments on this review</h3></div><details class="context-help"><summary aria-label="About evaluation comments" title="More information">i</summary><p>Comments are saved with this evaluation and sync to the same account on other devices. They do not change the ratings.</p></details></header>
+          <div id="evaluation-comment-list" class="evaluation-comment-list" aria-live="polite"></div>
+          <label>Add a comment<textarea id="evaluation-comment-input" rows="3" maxlength="600" placeholder="Add a note about this completed evaluation…"></textarea></label>
+          <div class="evaluation-comment-actions"><button type="button" class="outline-button" id="add-evaluation-comment">Add comment</button><p class="save-message" id="evaluation-comment-message" role="status"></p></div>
+        </section>
+        <button type="button" class="solid-button" id="save-note">Save evaluation</button>
         <p class="save-message" id="save-message" role="status"></p>
       </div>
     </dialog>
 
     <script src="api-config.js?v=20261004-api-v1"></script>
-    <script src="auth-ui.js?v=20261004-account-v2"></script>
+    <script src="auth-ui.js?v=20261008-workspace-sync-v1"></script>
   </body>
 </html>
