@@ -17,6 +17,16 @@ CREATE TABLE IF NOT EXISTS ppm_login_sessions (
 CREATE INDEX IF NOT EXISTS ppm_login_sessions_user_id_idx ON ppm_login_sessions(user_id);
 CREATE INDEX IF NOT EXISTS ppm_login_sessions_expires_at_idx ON ppm_login_sessions(expires_at);
 
+CREATE TABLE IF NOT EXISTS ppm_password_reset_tokens (
+  token_hash VARCHAR(64) PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES ppm_users(id) ON DELETE CASCADE,
+  expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS ppm_password_reset_tokens_user_id_idx ON ppm_password_reset_tokens(user_id);
+CREATE INDEX IF NOT EXISTS ppm_password_reset_tokens_expires_at_idx ON ppm_password_reset_tokens(expires_at);
+
 CREATE TABLE IF NOT EXISTS ppm_workspace_data (
   user_id UUID PRIMARY KEY REFERENCES ppm_users(id) ON DELETE CASCADE,
   workspace_json TEXT NOT NULL,

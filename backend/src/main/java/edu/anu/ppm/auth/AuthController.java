@@ -19,9 +19,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RequestMapping("/api/auth")
 class AuthController {
     private final AuthService auth;
+    private final PasswordResetService passwordReset;
 
-    AuthController(AuthService auth) {
+    AuthController(AuthService auth, PasswordResetService passwordReset) {
         this.auth = auth;
+        this.passwordReset = passwordReset;
     }
 
     @PostMapping("/register")
@@ -32,6 +34,19 @@ class AuthController {
     @PostMapping("/login")
     AuthResponse login(@RequestBody(required = false) LoginRequest request) {
         return auth.login(request);
+    }
+
+    @PostMapping("/password-reset/request")
+    ResponseEntity<MessageResponse> requestPasswordReset(@RequestBody(required = false) PasswordResetRequest request) {
+        passwordReset.requestReset(request);
+        return ResponseEntity.accepted().body(new MessageResponse(
+                "If an account is linked to that email, password reset instructions will be sent."));
+    }
+
+    @PostMapping("/password-reset/confirm")
+    ResponseEntity<MessageResponse> confirmPasswordReset(@RequestBody(required = false) PasswordResetConfirmRequest request) {
+        passwordReset.confirmReset(request);
+        return ResponseEntity.ok(new MessageResponse("Password updated. Sign in with your new password."));
     }
 
     @GetMapping("/me")

@@ -1445,6 +1445,7 @@ body { background: var(--ink); }
 @media (max-width: 560px) { .account-danger-card { align-items: flex-start; flex-direction: column; } .account-delete-actions { flex-direction: column-reverse; } .account-delete-actions > button { width: 100%; } }
 
 .auth-page { min-height: 100vh; background: #f5f6f2; }
+.auth-page [hidden] { display: none !important; }
 .auth-page-header { display: flex; min-height: 72px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); background: white; padding: 0 clamp(18px, 4vw, 60px); }
 .auth-page-header > a:last-child { border-bottom: 1px solid var(--ink); padding: 5px 0; font-size: 12px; font-weight: 800; }
 .auth-page-main { display: grid; min-height: calc(100vh - 72px); place-items: center; padding: 36px 18px; }
@@ -1463,6 +1464,9 @@ body { background: var(--ink); }
 .auth-submit:disabled { opacity: .6; cursor: wait; }
 .auth-mode-switch { margin: 21px 0 0; color: #55554f; font-size: 12px; }
 .auth-mode-switch button { border: 0; background: none; padding: 3px; color: #1a5c82; cursor: pointer; font-size: inherit; font-weight: 800; }
+.auth-forgot-link { justify-self: start; margin-top: 12px; border: 0; background: none; padding: 0; color: #55554f; cursor: pointer; font: inherit; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
+.auth-forgot-link:hover { color: var(--ink); }
+.auth-reset-signin { margin-top: 18px; }
 .auth-local-note { margin-top: 26px; border-top: 1px solid var(--line); padding-top: 17px; }
 .auth-local-note strong { font-size: 11px; }
 .auth-local-note p { margin: 6px 0 0; color: #6c6c65; font-size: 11px; line-height: 1.5; }

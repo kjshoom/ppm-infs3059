@@ -21,5 +21,19 @@ services:
         value: https://kjshoom.github.io,http://localhost:4173,http://127.0.0.1:4173
       - key: PPM_SESSION_HOURS
         value: "168"
+      - key: PPM_PASSWORD_RESET_MAIL_ENABLED
+        value: "true"
+      - key: PPM_PASSWORD_RESET_URL
+        value: https://kjshoom.github.io/ppm-infs3059/login.html?mode=reset
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USERNAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: PPM_MAIL_FROM
+        sync: false
       - key: DB_POOL_SIZE
         value: "3"

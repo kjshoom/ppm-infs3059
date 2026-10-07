@@ -9,6 +9,9 @@ final class AuthModels {
 
     record RegisterRequest(String name, String email, String password, String role) {}
     record LoginRequest(String email, String password) {}
+    record PasswordResetRequest(String email) {}
+    record PasswordResetConfirmRequest(String token, String password) {}
+    record MessageResponse(String message) {}
     record ProfileUpdateRequest(String name, String email, String role) {}
     record UserResponse(UUID id, String name, String email, String role, Instant createdAt) {}
     record AuthResponse(String token, UserResponse user) {}

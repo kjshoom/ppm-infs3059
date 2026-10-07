@@ -353,13 +353,22 @@
     const requestedReturn = params.get("return") || "workplace.html";
     const returnTo = requestedReturn === "index.html" || requestedReturn === "workplace.html" || requestedReturn === "account.html" ? requestedReturn : "workplace.html";
     const sharedAccounts = Boolean(apiBase());
-    let signup = params.get("mode") === "signup";
+    let mode = params.get("mode") === "reset" ? "reset" : params.get("mode") === "forgot" ? "forgot" : params.get("mode") === "signup" ? "signup" : "login";
+    const resetToken = params.get("token") || new URLSearchParams(location.hash.replace(/^#/, "")).get("token") || "";
+    if (mode === "reset" && resetToken) history.replaceState(null, "", `${location.pathname}?mode=reset`);
     const title = $("#auth-title");
     const subtitle = $("#auth-subtitle");
     const message = $("#auth-message");
     const submit = $("#auth-submit");
     const switchCopy = $("#auth-switch-copy");
     const switchButton = $("#auth-switch");
+    const switchRow = $(".auth-mode-switch");
+    const forgotButton = $("#auth-forgot-password");
+    const backToSignIn = $("#auth-reset-signin");
+    const emailField = $("#auth-email-field");
+    const passwordField = $("#auth-password-field");
+    const confirmField = $("#auth-password-confirm-field");
+    const confirmPassword = $("#auth-password-confirm");
     const signupFields = document.querySelectorAll(".auth-signup-only");
     const password = $("#auth-password");
     const storageNote = $("#auth-storage-note");
@@ -370,32 +379,85 @@
         : "<strong>Prototype account storage</strong><p>Until a shared account service is connected, accounts are saved in this browser only. They will not work in another browser or on another device.</p>";
     }
 
-    function setMode() {
-      title.textContent = signup ? "Create your account" : "Sign in";
+    function setMode(nextMode = mode) {
+      mode = nextMode;
+      const signup = mode === "signup";
+      const forgot = mode === "forgot";
+      const reset = mode === "reset";
+      const complete = mode === "reset-complete";
+      title.textContent = signup ? "Create your account" : forgot ? "Reset your password" : reset ? "Choose a new password" : complete ? "Password updated" : "Sign in";
       subtitle.textContent = signup
         ? (sharedAccounts ? "Create an account you can use on your other devices." : "Create a PPM profile for this browser.")
-        : (sharedAccounts ? "Use your PPM account to enter the workplace." : "Use your PPM account to enter the workplace.");
-      submit.textContent = signup ? "Create account" : "Continue";
+        : forgot
+          ? "Enter the email for your PPM account. If it matches, we’ll send a one-time reset link."
+          : reset
+            ? "Choose a new password for your PPM account. Reset links expire after 30 minutes."
+            : complete
+              ? "Your password has been changed. Sign in with your new password."
+              : "Use your PPM account to enter the workplace.";
+      submit.textContent = signup ? "Create account" : forgot ? "Send reset link" : reset ? "Save new password" : "Continue";
       switchCopy.textContent = signup ? "Already have an account?" : "New to this prototype?";
       switchButton.textContent = signup ? "Sign in" : "Create account";
+      switchRow.hidden = forgot || reset || complete;
+      forgotButton.hidden = mode !== "login";
+      backToSignIn.hidden = !(forgot || reset || complete);
+      backToSignIn.textContent = complete || reset ? "← Back to sign in" : "← Cancel";
+      backToSignIn.href = complete || reset ? "./login.html" : `./login.html?mode=login&return=${encodeURIComponent(returnTo)}`;
+      emailField.hidden = reset || complete;
+      passwordField.hidden = forgot || complete;
+      confirmField.hidden = !reset;
       signupFields.forEach((field) => { field.hidden = !signup; });
       $("#auth-name").required = signup;
       $("#auth-role").required = signup;
-      password.autocomplete = signup ? "new-password" : "current-password";
-      form.dataset.mode = signup ? "signup" : "login";
-      message.textContent = "";
+      $("#auth-email").required = !reset && !complete;
+      password.required = !forgot && !complete;
+      confirmPassword.required = reset;
+      password.autocomplete = signup || reset ? "new-password" : "current-password";
+      form.dataset.mode = mode;
+      form.hidden = complete;
+      storageNote.hidden = forgot || reset || complete;
+      if (!reset) message.textContent = "";
+      if (reset && !resetToken) {
+        submit.disabled = true;
+        message.dataset.state = "error";
+        message.textContent = "This reset link is incomplete. Request a new one.";
+      } else {
+        submit.disabled = false;
+      }
     }
 
-    switchButton.addEventListener("click", () => { signup = !signup; setMode(); });
+    switchButton.addEventListener("click", () => setMode(mode === "signup" ? "login" : "signup"));
+    forgotButton.addEventListener("click", () => setMode("forgot"));
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       message.textContent = "";
       if (!form.reportValidity()) return;
       submit.disabled = true;
-      submit.textContent = signup ? "Creating account…" : "Checking account…";
+      const signup = mode === "signup";
+      const forgot = mode === "forgot";
+      const reset = mode === "reset";
+      submit.textContent = signup ? "Creating account…" : forgot ? "Sending…" : reset ? "Updating…" : "Checking account…";
       try {
         const email = $("#auth-email").value.trim().toLocaleLowerCase();
         const passphrase = password.value;
+        if (forgot) {
+          await apiRequest("/api/auth/password-reset/request", { method: "POST", body: { email } });
+          message.dataset.state = "success";
+          message.textContent = "If an account is linked to that email, reset instructions will be sent.";
+          submit.textContent = "Request sent";
+          return;
+        }
+        if (reset) {
+          if (passphrase !== confirmPassword.value) throw new Error("The passwords do not match.");
+          await apiRequest("/api/auth/password-reset/confirm", {
+            method: "POST",
+            body: { token: resetToken, password: passphrase }
+          });
+          message.dataset.state = "success";
+          message.textContent = "Your password has been changed.";
+          setMode("reset-complete");
+          return;
+        }
         if (sharedAccounts) {
           const payload = signup
             ? { name: $("#auth-name").value.trim(), email, password: passphrase, role: $("#auth-role").value }
@@ -430,10 +492,13 @@
         }
         window.location.assign(`./${returnTo}`);
       } catch (error) {
+        message.dataset.state = "error";
         message.textContent = error instanceof Error ? error.message : "We couldn't save the account. Check browser storage and try again.";
       } finally {
-        submit.disabled = false;
-        submit.textContent = signup ? "Create account" : "Continue";
+        if (mode !== "reset-complete" && !(mode === "forgot" && message.dataset.state === "success")) {
+          submit.disabled = false;
+          submit.textContent = mode === "signup" ? "Create account" : mode === "forgot" ? "Send reset link" : mode === "reset" ? "Save new password" : "Continue";
+        }
       }
     });
     setMode();

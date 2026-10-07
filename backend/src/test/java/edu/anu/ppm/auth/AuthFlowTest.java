@@ -16,9 +16,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:ppm;MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
@@ -27,9 +34,13 @@ import org.springframework.test.web.servlet.MvcResult;
         "spring.datasource.driver-class-name=org.h2.Driver"
 })
 @AutoConfigureMockMvc
+@Import(AuthFlowTest.TestMailConfiguration.class)
 class AuthFlowTest {
     @Autowired
     MockMvc http;
+
+    @Autowired
+    CapturingPasswordResetEmailSender resetEmailSender;
 
     @Test
     void accountCanBeCreatedUsedOnAnotherSignInAndLoggedOut() throws Exception {
@@ -69,6 +80,52 @@ class AuthFlowTest {
         String wrongPassword = "{\"email\":\"" + email + "\",\"password\":\"wrong-password\"}";
         http.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(wrongPassword))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void passwordCanBeResetWithOneTimeLinkWithoutRevealingWhetherEmailExists() throws Exception {
+        String email = "reset-" + System.nanoTime() + "@example.com";
+        String signup = "{\"name\":\"Reset User\",\"email\":\"" + email + "\",\"password\":\"project-ppm-2026\",\"role\":\"Reviewer\"}";
+        MvcResult created = http.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(signup))
+                .andExpect(status().isCreated()).andReturn();
+        String previousSession = field(created.getResponse().getContentAsString(), "token");
+
+        String request = "{\"email\":\"" + email + "\"}";
+        MvcResult resetRequested = http.perform(post("/api/auth/password-reset/request")
+                        .contentType(MediaType.APPLICATION_JSON).content(request))
+                .andExpect(status().isAccepted()).andReturn();
+        String unknownRequest = "{\"email\":\"missing-" + email + "\"}";
+        MvcResult unknownResetRequested = http.perform(post("/api/auth/password-reset/request")
+                        .contentType(MediaType.APPLICATION_JSON).content(unknownRequest))
+                .andExpect(status().isAccepted()).andReturn();
+        assertThat(resetRequested.getResponse().getContentAsString())
+                .isEqualTo(unknownResetRequested.getResponse().getContentAsString());
+
+        String link = resetEmailSender.linkFor(email);
+        assertThat(link).contains("mode=reset", "token=");
+        String token = URLDecoder.decode(link.substring(link.indexOf("token=") + "token=".length()), StandardCharsets.UTF_8);
+        String confirmation = "{\"token\":\"" + token + "\",\"password\":\"new-ppm-password-2026\"}";
+        http.perform(post("/api/auth/password-reset/confirm").contentType(MediaType.APPLICATION_JSON).content(confirmation))
+                .andExpect(status().isOk());
+
+        http.perform(get("/api/auth/me").header("Authorization", "Bearer " + previousSession))
+                .andExpect(status().isUnauthorized());
+        String oldLogin = "{\"email\":\"" + email + "\",\"password\":\"project-ppm-2026\"}";
+        http.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(oldLogin))
+                .andExpect(status().isUnauthorized());
+        String newLogin = "{\"email\":\"" + email + "\",\"password\":\"new-ppm-password-2026\"}";
+        http.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(newLogin))
+                .andExpect(status().isOk());
+        http.perform(post("/api/auth/password-reset/confirm").contentType(MediaType.APPLICATION_JSON).content(confirmation))
+                .andExpect(status().isBadRequest());
+    }
+
+    @TestConfiguration(proxyBeanMethods = false)
+    static class TestMailConfiguration {
+        @Bean
+        CapturingPasswordResetEmailSender passwordResetEmailSender() {
+            return new CapturingPasswordResetEmailSender();
+        }
     }
 
     @Test
@@ -213,5 +270,18 @@ class AuthFlowTest {
         Matcher matcher = Pattern.compile("\\\"" + Pattern.quote(name) + "\\\"\\s*:\\s*\\\"([^\\\"]*)\\\"").matcher(json);
         if (!matcher.find()) throw new AssertionError("Missing JSON field: " + name);
         return matcher.group(1);
+    }
+}
+
+final class CapturingPasswordResetEmailSender implements PasswordResetEmailSender {
+    private final Map<String, String> links = new ConcurrentHashMap<>();
+
+    @Override
+    public void sendResetLink(String email, String resetLink) {
+        links.put(email, resetLink);
+    }
+
+    String linkFor(String email) {
+        return links.get(email);
     }
 }
