@@ -44,10 +44,10 @@
       source.querySelectorAll("dialog.modal").forEach((dialog) => document.body.append(dialog.cloneNode(true)));
       loading.hidden = true;
 
-      await loadScript("./app.js?v=20261022-remove-test-mvp-entry-v1");
-      if (window.PPMGuestDemo) await loadScript("./guest-demo.js?v=20261021-demo-input-context-v2");
+      await loadScript("./app.js?v=20261023-help-labels-v1");
+      if (window.PPMGuestDemo) await loadScript("./guest-demo.js?v=20261023-help-labels-v1");
       await loadScript("./public/test-feedback.js?v=20261012-demo-mvp-v1");
-      await loadScript("./guided-tour.js?v=20261019-remove-assistance-panels-v1");
+      await loadScript("./guided-tour.js?v=20261023-help-labels-v1");
       window.PPMTour?.init();
     } catch (error) {
       loading.hidden = false;

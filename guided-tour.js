@@ -35,7 +35,7 @@
       { title: "Evaluate a proposal", description: "Reviewers record five separate 1–5 ratings and a short rationale for each one. The evidence is recorded without calculating a single total score.", demoDescription: "Inspect sample evaluations to see five separate 1–5 ratings and the rationale behind each one. The demo lets you read the examples; it does not save new ratings or comments.", view: "reviewer", target: "#review-queue" }
     ],
     "Portfolio Manager": [
-      { title: "Set the investment context · 01", description: "Set the planning cycle, strategic objectives, budget, and available capacity used for portfolio checks.", demoDescription: "See the sample planning cycle, strategic objectives, budget, and available capacity. These values provide the context for the portfolio's constraint checks and cannot be changed in the demo.", view: "organisation", target: "#organisation-form" },
+      { title: "Set portfolio settings · 01", description: "Set the planning cycle, strategic objectives, budget, and available capacity used for portfolio checks.", demoDescription: "See the sample planning cycle, strategic objectives, budget, and available capacity. These values provide the context for the portfolio's constraint checks and cannot be changed in the demo.", view: "organisation", target: "#organisation-form" },
       { title: "Review the project overview · 02", description: "Search and filter evaluated proposals. Select an individual project to inspect its ratings and reviewer rationale.", view: "manager", target: ".portfolio-layout" },
       { title: "View one project’s radar profile · 03", description: "A single evaluated proposal is enough to show its five-criterion radar profile. This does not create a total score or recommendation.", view: "comparison", target: "#comparison-workspace", prepare: () => prepareSelection(1) },
       { title: "Compare project profiles · 03", description: "Select two to four evaluated proposals to see their criterion profiles overlaid and compare the recorded ratings side by side.", view: "comparison", target: "#comparison-workspace", prepare: () => prepareSelection(2) },
@@ -65,7 +65,7 @@
     const roleNavigationDescription = {
       "Project Proposer": "The left menu shows 01 Project Proposal. Other roles’ screens are hidden.",
       Reviewer: "The left menu shows 01 Project Evaluation. Other roles’ screens are hidden.",
-      "Portfolio Manager": "The left menu shows the manager workflow: 01 Investment Context, 02 Project Overview, 03 Comparison, 04 Shortlist, 05 Build Candidate Portfolio, 06 Portfolio Review, and 07 Decisions."
+      "Portfolio Manager": "The left menu shows the manager workflow: 01 Portfolio Settings, 02 Project Overview, 03 Comparison, 04 Shortlist, 05 Build Candidate Portfolio, 06 Portfolio Review, and 07 Decisions."
     }[role] || navigationStep.description;
     const selectedSteps = (roleSteps[role] || []).map((step) => ({
       ...step,

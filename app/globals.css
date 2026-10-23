@@ -669,7 +669,9 @@ body.js-ready .reveal-group.is-visible .reveal { transition-delay: 0ms; }
 .view-heading--with-help > div { min-width: 0; }
 .investment-context-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; max-width: none; }
 .investment-context-heading > div { min-width: 0; }
-.context-help-launch { display: grid; flex: 0 0 18px; width: 18px; height: 18px; place-items: center; margin: 2px 0 0; border: 1px solid rgba(74,74,67,.27); border-radius: 50%; background: rgba(255,255,255,.42); color: rgba(74,74,67,.62); cursor: pointer; font: inherit; font-size: 10px; font-weight: 800; transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, color 140ms ease; }
+.context-help-launch { display: inline-flex; flex: 0 0 auto; width: auto; min-height: 44px; align-items: center; justify-content: center; gap: 6px; margin: 2px 0 0; border: 1px solid var(--ink); border-radius: 6px; background: white; padding: 8px 12px; color: var(--ink); cursor: pointer; font: inherit; font-size: 14px; font-weight: 800; white-space: nowrap; transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, color 140ms ease; }
+.view-heading > div > p:not(.section-kicker) { max-width: 680px; margin: 16px 0 0; color: var(--muted); font-size: 15px; line-height: 1.5; overflow-wrap: anywhere; }
+.view-heading--split > div { min-width: 0; }
 .context-help-launch:hover, .context-help-launch[aria-pressed="true"] { transform: scale(1.07); border-color: var(--ink); background: var(--yellow); color: var(--ink); }
 .context-help-launch:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .view-heading--split > p { margin-bottom: 4px; }
@@ -1410,6 +1412,10 @@ body { background: var(--ink); }
 }
 
 .intro-cta .section-kicker { color: #aaa9a1; }
+.intro-cta .intro-cta-guidance { display: grid; gap: 14px; width: 100%; max-width: 680px; }
+.intro-cta .intro-cta-guidance p { margin: 0; font-size: clamp(16px, 1.5vw, 20px); line-height: 1.6; }
+.intro-cta .intro-cta-guidance .intro-cta-note { color: #c4c4bc; font-size: 14px; line-height: 1.5; }
+.intro-cta > .intro-cta-note { max-width: 680px; margin: 0; color: #c4c4bc; font-size: 14px; line-height: 1.5; }
 .intro-cta h2 {
   max-width: 1050px;
   margin: 0;

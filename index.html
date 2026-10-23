@@ -15,7 +15,7 @@
     <meta name="twitter:image" content="public/og.png" />
     <title>PPM — Project Portfolio Management</title>
     <link rel="icon" href="public/favicon.svg" />
-    <link rel="stylesheet" href="app/globals.css?v=20261021-demo-input-context-v1" />
+    <link rel="stylesheet" href="app/globals.css?v=20261023-intro-guidance-v1" />
   </head>
   <body class="intro-document">
     <main id="app">
@@ -59,7 +59,11 @@
         <section class="intro-cta reveal" aria-labelledby="intro-cta-title">
           <p class="section-kicker">Interactive prototype</p>
           <h2 id="intro-cta-title">Try the tool from each role.</h2>
-          <p>For the demo, select a role, then use “Change demo role” in the top-right menu to switch. If signed in, change your role in “Manage your PPM account”.</p>
+          <div class="intro-cta-guidance">
+            <p>Choose a role to explore the sample workspace. You can switch roles at any time using ‘Change demo role’ in the top-right menu.</p>
+            <p class="intro-cta-note">This demo is read-only. Sign in to enter and save your own information.</p>
+          </div>
+          <p class="intro-cta-note">Need help? Click ⓘ Help on a workspace page, then select an area to see instructions.</p>
           <div class="intro-cta-actions">
             <a class="intro-cta-button" data-enter-workplace href="./role-select.html?v=20261012-demo-mvp-v1">Enter workspace <span aria-hidden="true">↘</span></a>
             <a class="circle-link intro-back-to-top" href="#top" aria-label="Back to top" title="Back to top"><span aria-hidden="true">↑</span></a>
@@ -75,7 +79,7 @@
               <a class="workspace-brand" href="./workplace.html?v=20261012-demo-mvp-v1" aria-label="PPM workspace home"><span class="workspace-brand-mark" aria-hidden="true"></span><span><strong>PPM</strong><small>Project Portfolio Management</small></span></a>
               <nav class="workspace-nav" aria-label="Portfolio workspace">
                 <p class="workspace-nav-group-label">Planning &amp; Proposal</p>
-                <button type="button" data-workspace-view-button="organisation" data-context-help-title="Investment Context" data-context-help-text="Set this planning cycle's dates, objectives, budget, and available staff capacity. These limits are used to check candidate portfolios later."><span data-screen-number>01</span>Investment Context</button>
+                <button type="button" data-workspace-view-button="organisation" data-context-help-title="Portfolio Settings" data-context-help-text="Set this planning cycle's dates, objectives, budget, and available staff capacity. These limits are used to check candidate portfolios later."><span data-screen-number>01</span>Portfolio Settings</button>
                 <button type="button" data-workspace-view-button="proposer" data-context-help-title="Project Proposal" data-context-help-text="Submit project evidence for a reviewer: choose an objective, explain expected benefits, estimate cost and staff, and note the timeline and risks."><span data-screen-number>02</span>Propose Project</button>
                 <p class="workspace-nav-group-label">Assessment &amp; Analysis</p>
                 <button type="button" data-workspace-view-button="reviewer" data-context-help-title="Project Evaluation" data-context-help-text="Assess the proposal evidence using five separate criterion ratings and a short rationale for each one."><span data-screen-number>03</span>Project Evaluation</button>
@@ -99,8 +103,8 @@
             <div><button type="button" class="text-button" id="reset-test-data">Reset test data</button><a class="text-button" id="exit-test-mode" href="./workplace.html?v=20261012-demo-mvp-v1">Exit test mode</a></div>
           </aside>
 
-          <section class="workspace-view setup-view" data-workspace-view="organisation" data-context-help-title="Investment Context" data-context-help-text="Set the planning cycle, objectives, total budget, and available staff capacity. These values provide the limits and direction used later when reviewing candidate portfolios." hidden aria-labelledby="organisation-title">
-            <div class="view-heading investment-context-heading"><div><p class="section-kicker">Investment Context</p><h3 id="organisation-title">Set the context for this portfolio cycle.</h3></div><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose an Investment Context area for help" title="Select an area to ask about">i</button></div>
+          <section class="workspace-view setup-view" data-workspace-view="organisation" data-context-help-title="Portfolio Settings" data-context-help-text="Set the planning cycle, objectives, total budget, and available staff capacity. These values provide the limits and direction used later when reviewing candidate portfolios." hidden aria-labelledby="organisation-title">
+            <div class="view-heading investment-context-heading"><div><p class="section-kicker">Planning</p><h3 id="organisation-title">Portfolio Settings</h3><p>Set the planning period, budget, available staff and strategic objectives.</p></div><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose a Portfolio Settings area for help" title="Select an area to ask about">ⓘ Help</button></div>
             <form id="organisation-form" class="setup-form investment-context-form">
               <div class="investment-context-grid">
                 <section class="context-card context-card--planning" data-context-help-title="Planning Period" data-context-help-text="Name the portfolio cycle and set the dates and business unit it covers. The planning horizon describes the longer period the organisation is planning across." aria-labelledby="context-planning-title">
@@ -141,12 +145,12 @@
                 </section>
               </div>
 
-              <div class="form-action-row"><button type="submit" class="solid-button">Save Investment Context</button><p id="organisation-message" class="save-message" role="status"></p></div>
+              <div class="form-action-row"><button type="submit" class="solid-button">Save Portfolio Settings</button><p id="organisation-message" class="save-message" role="status"></p></div>
             </form>
           </section>
 
           <section class="workspace-view proposer-view" data-workspace-view="proposer" data-context-help-title="Project Proposal" data-context-help-text="Submit the evidence a reviewer needs to understand the project, its objective, expected benefits, estimated cost and staff, timeline, and key risks. The proposal is not scored or approved on this screen." hidden aria-labelledby="proposer-title">
-            <div class="view-heading view-heading--with-help"><div><p class="section-kicker">Proposal entry</p><h3 id="proposer-title">Give reviewers the information they need.</h3></div><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose a proposal area for help" title="Select an area to ask about">i</button></div>
+            <div class="view-heading view-heading--with-help"><div><p class="section-kicker">Proposal entry</p><h3 id="proposer-title">Give reviewers the information they need.</h3></div><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose a proposal area for help" title="Select an area to ask about">ⓘ Help</button></div>
             <form id="proposal-form" class="proposal-form">
               <div class="proposal-form-grid">
                 <label data-context-help-title="Project Name" data-context-help-text="Use a short, distinct name so reviewers and managers can identify this proposal in lists and comparisons.">Project name<input name="title" maxlength="100" required /></label>
@@ -164,7 +168,7 @@
           </section>
 
           <section class="workspace-view reviewer-view" data-workspace-view="reviewer" data-context-help-title="Project Evaluation" data-context-help-text="Open a proposal and assess the five criteria separately using the scoring guide. Record evidence-based rationale for each rating. The system does not calculate a single total score or make an approval decision." hidden aria-labelledby="reviewer-title">
-            <div class="view-heading view-heading--split"><div><p class="section-kicker">Reviewer queue</p><h3 id="reviewer-title">Assess evidence, not a single total.</h3></div><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose a Project Evaluation area for help" title="Select an area to ask about">i</button></div>
+            <div class="view-heading view-heading--split"><div><p class="section-kicker">Reviewer queue</p><h3 id="reviewer-title">Project Evaluation</h3><p>Select a project to review. Rate each of the five criteria using the scoring guides and explain your ratings.</p></div><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose a Project Evaluation area for help" title="Select an area to ask about">ⓘ Help</button></div>
             <div class="review-queue" id="review-queue" data-context-help-title="Reviewer Queue" data-context-help-text="Open a submitted project to inspect its proposal evidence. Give each of the five criteria a 1–5 rating and explain the rating with a short rationale. A project is ready for comparison when all five ratings and reasons are saved." aria-live="polite"></div>
           </section>
 
@@ -184,7 +188,7 @@
           </section>
 
           <section class="workspace-view manager-view" data-workspace-view="manager" data-context-help-title="Project Overview" data-context-help-text="Use this screen to find projects, inspect reviewer evidence, and select evaluated projects for a temporary radar comparison. Shortlisting is separate: it retains projects for a candidate portfolio but is not an approval." hidden aria-labelledby="portfolio-manager-title">
-            <div class="view-heading view-heading--split overview-view-heading"><div><p class="section-kicker">Project Overview</p><h3 id="portfolio-manager-title">Review the current proposal pipeline.</h3></div><div class="overview-heading-tools"><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose a Project Overview area for help" title="Select an area to ask about">i</button><div class="overview-view-actions"><button type="button" class="solid-button" data-open-comparison>Open Comparison</button><button type="button" class="outline-button" data-open-insights>View Criterion Insights</button></div></div></div>
+            <div class="view-heading view-heading--split overview-view-heading"><div><p class="section-kicker">Proposal pipeline</p><h3 id="portfolio-manager-title">Project Overview</h3><p>View proposals and evaluation results. Select evaluated projects for comparison.</p></div><div class="overview-heading-tools"><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose a Project Overview area for help" title="Select an area to ask about">ⓘ Help</button><div class="overview-view-actions"><button type="button" class="solid-button" data-open-comparison>Open Comparison</button><button type="button" class="outline-button" data-open-insights>View Criterion Insights</button></div></div></div>
             <div class="workflow-strip" aria-label="Portfolio review workflow">
               <span class="is-current"><b data-workflow-step-for="manager">02</b> Project Overview</span>
               <span><b data-workflow-step-for="comparison">03</b> Comparison</span>
@@ -255,32 +259,32 @@
           </section>
 
           <section class="workspace-view shortlist-view" data-workspace-view="shortlist" data-context-help-title="Shortlist" data-context-help-text="Keep projects you want to investigate further after reviewing their evidence. This saved list is separate from the temporary comparison selection and is not a final decision." hidden aria-labelledby="shortlist-view-title">
-            <div class="view-heading view-heading--split"><div><p class="section-kicker">Formal candidate list</p><h3 id="shortlist-view-title">Shortlist projects after comparison.</h3></div><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose a Shortlist area for help" title="Select an area to ask about">i</button></div>
+            <div class="view-heading view-heading--split"><div><p class="section-kicker">Formal candidate list</p><h3 id="shortlist-view-title">Shortlisted Projects</h3><p>Review projects saved after comparison and use them to build candidate portfolios.</p></div><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose a Shortlist area for help" title="Select an area to ask about">ⓘ Help</button></div>
             <div class="shortlist-workspace" id="shortlist-workspace" data-context-help-title="Shortlisted Projects" data-context-help-text="Review the projects retained for further consideration. You can remove a project from the Shortlist at any time. Additions here make projects available to candidate portfolio scenarios, but do not approve them." aria-live="polite"></div>
           </section>
 
           <section class="workspace-view comparison-view" data-workspace-view="comparison" data-context-help-title="Detailed Comparison" data-context-help-text="Review criterion profiles and recorded evidence side by side. The chart supports discussion only: it does not calculate a total or select a winner. Add suitable projects to the Shortlist separately." hidden aria-labelledby="comparison-view-title">
-            <div class="view-heading view-heading--split"><div><p class="section-kicker">Detailed comparison</p><h3 id="comparison-view-title">Compare the current project selection.</h3></div><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose a Comparison area for help" title="Select an area to ask about">i</button></div>
+            <div class="view-heading view-heading--split"><div><p class="section-kicker">Detailed comparison</p><h3 id="comparison-view-title">Compare Projects</h3><p>Compare evaluated projects across five criteria and review the reasons for each rating.</p></div><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose a Comparison area for help" title="Select an area to ask about">ⓘ Help</button></div>
             <div class="comparison-workspace" id="comparison-workspace" aria-live="polite"></div>
           </section>
 
           <section class="workspace-view insights-view" data-workspace-view="insights" data-context-help-title="Criterion Insights" data-context-help-text="Select a project and inspect each criterion's rating alongside the reviewer rationale. Use this evidence to understand strengths and information gaps; there is no overall score." hidden aria-labelledby="insights-view-title">
-            <div class="view-heading view-heading--split"><div><p class="section-kicker">Criterion Insights</p><h3 id="insights-view-title">Review the evidence behind each rating.</h3></div><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose a Criterion Insights area for help" title="Select an area to ask about">i</button></div>
+            <div class="view-heading view-heading--split"><div><p class="section-kicker">Criterion Insights</p><h3 id="insights-view-title">Review the evidence behind each rating.</h3></div><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose a Criterion Insights area for help" title="Select an area to ask about">ⓘ Help</button></div>
             <div class="insights-workspace" id="insights-workspace" data-context-help-title="Criterion Evidence" data-context-help-text="Use the project selector to switch between evaluated proposals. Read each rating and its rationale separately; do not treat the radar shape as an overall score or recommendation." aria-live="polite"></div>
           </section>
 
           <section class="workspace-view scenarios-view" data-workspace-view="scenarios" data-context-help-title="Build Candidate Portfolio" data-context-help-text="Choose shortlisted projects for a candidate scenario. Review the combined cost and staff demand against the organisation's available limits, then save it for portfolio review. A scenario is not an approval." hidden aria-labelledby="scenarios-view-title">
-            <div class="view-heading view-heading--split"><div><p class="section-kicker">Portfolio selection</p><h3 id="scenarios-view-title">Build Candidate Portfolio</h3></div><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose a Candidate Portfolio area for help" title="Select an area to ask about">i</button></div>
+            <div class="view-heading view-heading--split"><div><p class="section-kicker">Portfolio selection</p><h3 id="scenarios-view-title">Build a Candidate Portfolio</h3><p>Add shortlisted projects to a scenario and check its total cost and staffing needs against your limits.</p></div><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose a Candidate Portfolio area for help" title="Select an area to ask about">ⓘ Help</button></div>
             <div class="scenario-workspace" id="scenario-workspace" data-context-help-title="Candidate Scenarios" data-context-help-text="Use the scenario tabs to work on a candidate combination. Add shortlisted projects to the active scenario, inspect its total cost and staff capacity, and save it when ready for review. The same shortlisted project can appear in multiple scenarios so you can compare different combinations." aria-live="polite"></div>
           </section>
 
           <section class="workspace-view decisions-view" data-workspace-view="decisions" data-context-help-title="Portfolio Decision" data-context-help-text="After reviewing a candidate portfolio, record a human decision and explain its rationale. Record follow-up actions for deferred or conditionally approved work. The system does not decide automatically." hidden aria-labelledby="decisions-view-title">
-            <div class="view-heading view-heading--split"><div><p class="section-kicker">Decision &amp; governance</p><h3 id="decisions-view-title">Portfolio Decision</h3></div><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose a Portfolio Decision area for help" title="Select an area to ask about">i</button></div>
+            <div class="view-heading view-heading--split"><div><p class="section-kicker">Decision &amp; governance</p><h3 id="decisions-view-title">Portfolio Decision</h3><p>Approve, defer or reject the selected scenario. Explain your decision and add any follow-up actions.</p></div><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose a Portfolio Decision area for help" title="Select an area to ask about">ⓘ Help</button></div>
             <div class="decision-workspace" id="decision-workspace" data-context-help-title="Decision Record" data-context-help-text="Choose the scenario under consideration, record approve, defer, or reject, and provide a reason. Include any conditions or next steps so the organisation has a clear decision record." aria-live="polite"></div>
           </section>
 
           <section class="workspace-view reports-view" data-workspace-view="reports" data-context-help-title="Portfolio Review" data-context-help-text="Review the candidate scenario's projects, objective coverage, total cost, and staff demand. Check any constraint warnings and project evidence before recording a decision." hidden aria-labelledby="reports-view-title">
-            <div class="view-heading view-heading--split"><div><p class="section-kicker">Portfolio selection</p><h3 id="reports-view-title">Portfolio Review</h3></div><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose a Portfolio Review area for help" title="Select an area to ask about">i</button></div>
+            <div class="view-heading view-heading--split"><div><p class="section-kicker">Portfolio selection</p><h3 id="reports-view-title">Portfolio Review</h3><p>Review the selected scenario’s projects, strategic objectives, budget and staffing before recording a decision.</p></div><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose a Portfolio Review area for help" title="Select an area to ask about">ⓘ Help</button></div>
             <div class="report-workspace" id="report-workspace" data-context-help-title="Portfolio Review Summary" data-context-help-text="Select a saved scenario and review its projects, objective allocation, cost, and total FTE. Investigate any shortfall or evidence gap; being within limits alone does not approve the scenario." aria-live="polite"></div>
           </section>
             </div>
@@ -314,12 +318,12 @@
         <button class="icon-button" type="button" data-close-review aria-label="Close review">×</button>
       </div>
       <div class="review-form" data-context-help-title="Reviewer Evaluation" data-context-help-text="Assess the project evidence against each criterion separately. Choose a 1–5 rating, use the scoring guide when needed, and record a short rationale for each rating. Higher Risk Manageability means the risk is lower or easier to manage.">
-        <button type="button" class="context-help-launch evaluation-score-help" data-context-help-toggle aria-pressed="false" aria-label="Choose an evaluation area for help" title="Select an area to ask about">i</button>
+        <button type="button" class="context-help-launch evaluation-score-help" data-context-help-toggle aria-pressed="false" aria-label="Choose an evaluation area for help" title="Select an area to ask about">ⓘ Help</button>
         <div class="review-score-form" id="review-score-form" data-context-help-title="Five Criterion Ratings" data-context-help-text="Assess each criterion independently using its formal 1–5 guide. Add a short evidence-based rationale below each rating. All five ratings and rationales are needed before the evaluation is complete."></div>
         <p class="evaluation-locked-note" id="evaluation-locked-note" hidden></p>
         <label data-context-help-title="Overall Reviewer Note" data-context-help-text="Use this optional note for a general observation or information request that does not belong to one specific criterion. Criterion-specific rationale should remain with its rating.">Reviewer rationale<textarea id="review-notes" rows="6" placeholder="Explain the ratings, evidence, concerns, or information to request…"></textarea></label>
         <section class="evaluation-comments" id="evaluation-comments" data-context-help-title="Evaluation Comments" data-context-help-text="Add a follow-up comment to the completed evaluation. Comments discuss the recorded review; they do not alter the five criterion ratings." aria-labelledby="evaluation-comments-title" hidden>
-          <header><div><p class="section-kicker">Evaluation discussion</p><h3 id="evaluation-comments-title">Comments on this review</h3></div><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose an evaluation discussion area for help" title="Select an area to ask about">i</button></header>
+          <header><div><p class="section-kicker">Evaluation discussion</p><h3 id="evaluation-comments-title">Comments on this review</h3></div><button type="button" class="context-help-launch" data-context-help-toggle aria-pressed="false" aria-label="Choose an evaluation discussion area for help" title="Select an area to ask about">ⓘ Help</button></header>
           <div id="evaluation-comment-list" class="evaluation-comment-list" aria-live="polite"></div>
           <label>Add a comment<textarea id="evaluation-comment-input" rows="3" maxlength="600" placeholder="Add a note about this completed evaluation…"></textarea></label>
           <div class="evaluation-comment-actions"><button type="button" class="outline-button" id="add-evaluation-comment">Add comment</button><p class="save-message" id="evaluation-comment-message" role="status"></p></div>

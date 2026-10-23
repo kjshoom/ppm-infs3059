@@ -5,7 +5,7 @@
   // Visitors can inspect and compare samples. Text entry fields stay focusable so
   // a click can explain how to sign in, but remain read-only in the demo.
   const mutationControls = [
-    "#workspace form input", "#workspace form textarea", "#workspace form select", "#workspace form button",
+    "#workspace form input", "#workspace form textarea", "#workspace form select", "#workspace form button:not([data-context-help-toggle])",
     "#review-dialog input", "#review-dialog textarea", "#review-dialog select",
     "#save-note", "#add-evaluation-comment", "#release-review-claim",
     "#add-objective", "#reset-test-data",
