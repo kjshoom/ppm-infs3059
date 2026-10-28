@@ -33,3 +33,29 @@ CREATE TABLE IF NOT EXISTS ppm_workspace_data (
   version BIGINT NOT NULL DEFAULT 1,
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS ppm_teams (
+  id UUID PRIMARY KEY,
+  name VARCHAR(80) NOT NULL,
+  invite_code VARCHAR(16) NOT NULL UNIQUE,
+  owner_user_id UUID NOT NULL REFERENCES ppm_users(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ppm_team_memberships (
+  team_id UUID NOT NULL REFERENCES ppm_teams(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES ppm_users(id) ON DELETE CASCADE,
+  member_role VARCHAR(16) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  PRIMARY KEY (team_id, user_id),
+  UNIQUE (user_id)
+);
+
+CREATE INDEX IF NOT EXISTS ppm_team_memberships_team_id_idx ON ppm_team_memberships(team_id);
+
+CREATE TABLE IF NOT EXISTS ppm_team_workspace_data (
+  team_id UUID PRIMARY KEY REFERENCES ppm_teams(id) ON DELETE CASCADE,
+  workspace_json TEXT NOT NULL,
+  version BIGINT NOT NULL DEFAULT 1,
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL
+);

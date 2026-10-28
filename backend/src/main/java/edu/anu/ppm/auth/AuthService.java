@@ -33,13 +33,15 @@ class AuthService {
     private final JdbcTemplate jdbc;
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
+    private final TeamService teams;
     private final long sessionHours;
 
     AuthService(JdbcTemplate jdbc, PasswordEncoder passwordEncoder, ObjectMapper objectMapper,
-                @Value("${ppm.session-hours:168}") long sessionHours) {
+                TeamService teams, @Value("${ppm.session-hours:168}") long sessionHours) {
         this.jdbc = jdbc;
         this.passwordEncoder = passwordEncoder;
         this.objectMapper = objectMapper;
+        this.teams = teams;
         this.sessionHours = Math.max(1, Math.min(sessionHours, 24 * 30));
     }
 
@@ -88,14 +90,17 @@ class AuthService {
 
     WorkspaceResponse readWorkspace(String bearerToken) {
         StoredUser user = userForSession(bearerToken);
-        List<StoredWorkspace> rows = jdbc.query(
-                "SELECT workspace_json, version FROM ppm_workspace_data WHERE user_id = ?",
-                (result, row) -> new StoredWorkspace(result.getString("workspace_json"), result.getLong("version")),
-                user.id());
-        if (rows.isEmpty()) return new WorkspaceResponse(Map.of(), 0);
+        UUID teamId = teams.activeTeamId(user.id());
+        String scopeId = teamId == null ? "personal:" + user.id() : "team:" + teamId;
+        List<StoredWorkspace> rows = teamId == null
+                ? jdbc.query("SELECT workspace_json, version FROM ppm_workspace_data WHERE user_id = ?",
+                        (result, row) -> new StoredWorkspace(result.getString("workspace_json"), result.getLong("version")), user.id())
+                : jdbc.query("SELECT workspace_json, version FROM ppm_team_workspace_data WHERE team_id = ?",
+                        (result, row) -> new StoredWorkspace(result.getString("workspace_json"), result.getLong("version")), teamId);
+        if (rows.isEmpty()) return new WorkspaceResponse(scopeId, Map.of(), 0);
         try {
             Map<String, String> data = objectMapper.readValue(rows.get(0).json(), new TypeReference<>() {});
-            return new WorkspaceResponse(data, rows.get(0).version());
+            return new WorkspaceResponse(scopeId, data, rows.get(0).version());
         } catch (JacksonException exception) {
             throw new IllegalStateException("Saved workspace data could not be read.", exception);
         }
@@ -116,6 +121,12 @@ class AuthService {
         }
 
         Long expectedVersion = request.expectedVersion() == null ? 0L : request.expectedVersion();
+        UUID teamId = teams.activeTeamId(user.id());
+        String currentScope = teamId == null ? "personal:" + user.id() : "team:" + teamId;
+        if (request.scopeId() != null && !request.scopeId().equals(currentScope)) {
+            throw new AuthException(HttpStatus.CONFLICT, "Your team membership changed. Reload the workplace before saving.");
+        }
+        if (teamId != null) return saveTeamWorkspace(teamId, data, json, expectedVersion);
         List<Long> versions = jdbc.query("SELECT version FROM ppm_workspace_data WHERE user_id = ?",
                 (result, row) -> result.getLong("version"), user.id());
         Instant now = Instant.now();
@@ -127,7 +138,7 @@ class AuthService {
             } catch (DuplicateKeyException exception) {
                 throw workspaceConflict();
             }
-            return new WorkspaceResponse(data, 1);
+            return new WorkspaceResponse("personal:" + user.id(), data, 1);
         }
 
         long currentVersion = versions.get(0);
@@ -136,7 +147,26 @@ class AuthService {
                 "UPDATE ppm_workspace_data SET workspace_json = ?, version = version + 1, updated_at = ? WHERE user_id = ? AND version = ?",
                 json, java.sql.Timestamp.from(now), user.id(), expectedVersion);
         if (updated != 1) throw workspaceConflict();
-        return new WorkspaceResponse(data, currentVersion + 1);
+        return new WorkspaceResponse("personal:" + user.id(), data, currentVersion + 1);
+    }
+
+    private WorkspaceResponse saveTeamWorkspace(UUID teamId, Map<String, String> data, String json, long expectedVersion) {
+        List<Long> versions = jdbc.query("SELECT version FROM ppm_team_workspace_data WHERE team_id = ?",
+                (result, row) -> result.getLong("version"), teamId);
+        Instant now = Instant.now();
+        if (versions.isEmpty()) {
+            if (expectedVersion != 0) throw workspaceConflict();
+            jdbc.update("INSERT INTO ppm_team_workspace_data (team_id, workspace_json, version, updated_at) VALUES (?, ?, 1, ?)",
+                    teamId, json, java.sql.Timestamp.from(now));
+            return new WorkspaceResponse("team:" + teamId, data, 1);
+        }
+        long currentVersion = versions.get(0);
+        if (expectedVersion != currentVersion) throw workspaceConflict();
+        int updated = jdbc.update(
+                "UPDATE ppm_team_workspace_data SET workspace_json = ?, version = version + 1, updated_at = ? WHERE team_id = ? AND version = ?",
+                json, java.sql.Timestamp.from(now), teamId, expectedVersion);
+        if (updated != 1) throw workspaceConflict();
+        return new WorkspaceResponse("team:" + teamId, data, currentVersion + 1);
     }
 
     private Map<String, String> validateWorkspace(WorkspaceRequest request) {
@@ -198,6 +228,7 @@ class AuthService {
     @Transactional
     void deleteAccount(String bearerToken) {
         StoredUser user = userForSession(bearerToken);
+        teams.prepareAccountDeletion(user.id());
         jdbc.update("DELETE FROM ppm_users WHERE id = ?", user.id());
     }
 

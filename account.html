@@ -7,7 +7,7 @@
     <meta name="description" content="Manage your PPM account details." />
     <title>Your account · PPM</title>
     <link rel="icon" href="public/favicon.svg" />
-    <link rel="stylesheet" href="app/globals.css?v=20261019-draggable-assistant-v1" />
+    <link rel="stylesheet" href="app/globals.css?v=20261029-team-workspace-v1" />
   </head>
   <body class="account-settings-page">
     <header class="auth-page-header">
@@ -51,11 +51,46 @@
         </form>
         <p class="account-storage-note" id="account-storage-note"></p>
       </section>
+      <section class="account-team-card" id="account-team-card" aria-labelledby="team-heading">
+        <div class="account-team-heading">
+          <div><p class="section-kicker">Shared workspace</p><h2 id="team-heading">Work with your team</h2></div>
+          <span class="team-count-pill" id="team-count-pill" hidden></span>
+        </div>
+        <p class="account-team-intro">Create a team and share its invitation link. People who join with their own PPM accounts can work on the same proposals, reviews, shortlist, scenarios, and decisions.</p>
+        <p class="account-team-message" id="team-message" role="status" aria-live="polite"></p>
+        <div id="team-loading" class="team-loading">Checking team workspace…</div>
+        <div id="team-no-membership" hidden>
+          <form id="team-create-form" class="team-create-form">
+            <label class="auth-field" for="team-name">Team name
+              <input id="team-name" name="teamName" maxlength="80" placeholder="e.g. INFS3059 project team" required />
+            </label>
+            <button class="auth-submit" id="team-create-submit" type="submit">Create shared workspace</button>
+          </form>
+          <p class="team-personal-note">Creating a team copies your current account workspace into it. Your personal workspace stays saved separately.</p>
+          <p class="team-join-note">To join a team, open the invitation link shared by its owner after signing in. You won’t need to enter an invitation code.</p>
+        </div>
+        <div id="team-current" hidden>
+          <div class="team-details-row"><div><span class="team-label">Team</span><strong id="team-name-display"></strong></div><span class="team-role-badge" id="team-role-display"></span></div>
+          <div class="team-invite-row"><label class="auth-field" for="team-invite-link">Invitation link
+            <input id="team-invite-link" readonly aria-describedby="team-invite-help" />
+          </label><button type="button" class="outline-button" id="team-copy-invite">Copy link</button></div>
+          <small id="team-invite-help" class="team-invite-help">Anyone with this link can join the shared team workspace.</small>
+          <div class="team-members-heading"><strong>Members</strong><span id="team-member-count"></span></div>
+          <ul class="team-member-list" id="team-member-list"></ul>
+          <form id="team-transfer-form" class="team-transfer-form" hidden>
+            <label class="auth-field" for="team-transfer-member">Transfer team ownership
+              <select id="team-transfer-member" required></select>
+            </label>
+            <button type="submit" class="outline-button" id="team-transfer-submit">Transfer ownership</button>
+          </form>
+          <div class="team-leave-row"><p id="team-leave-note">Your personal workspace will remain saved if you leave this team.</p><button type="button" class="outline-button" id="team-leave-button">Leave team</button></div>
+        </div>
+      </section>
       <section class="account-danger-card" aria-labelledby="delete-account-heading">
         <div>
           <p class="section-kicker">Account removal</p>
           <h2 id="delete-account-heading">Delete account</h2>
-        <p id="delete-account-description">This permanently removes your PPM sign-in, profile, and the workspace data synced to this account.</p>
+        <p id="delete-account-description">This permanently removes your PPM sign-in and profile. If you own a team, ownership will transfer to another member when possible.</p>
         </div>
         <button class="account-delete-button" id="account-delete-open" type="button">Delete account</button>
       </section>
@@ -65,7 +100,7 @@
         <button class="account-delete-close" type="button" id="account-delete-close" aria-label="Close">×</button>
         <p class="section-kicker">This cannot be undone</p>
         <h2 id="account-delete-title">Delete your account?</h2>
-        <p id="account-delete-copy">Your sign-in, profile, and synced workspace data will be permanently removed from this account.</p>
+        <p id="account-delete-copy">Your sign-in and profile will be permanently removed. If you own a team with other members, ownership will transfer to another member.</p>
         <label class="auth-field" for="account-delete-confirm">Type <strong>DELETE</strong> to confirm
           <input id="account-delete-confirm" autocomplete="off" spellcheck="false" />
         </label>
@@ -77,6 +112,6 @@
       </form>
     </dialog>
     <script src="api-config.js?v=20261004-api-v1"></script>
-    <script src="auth-ui.js?v=20261019-remove-assistance-panels-v1"></script>
+    <script src="auth-ui.js?v=20261029-team-workspace-v1"></script>
   </body>
 </html>

@@ -12,6 +12,7 @@
   const message = document.querySelector("#workspace-sync-message");
   const action = document.querySelector("#workspace-sync-action");
   let userId = "";
+  let scopeId = "";
   let version = 0;
   let ready = false;
   let conflict = false;
@@ -79,12 +80,13 @@
   function parsePending() {
     try {
       const pending = JSON.parse(localStorage.getItem(PENDING_KEY) || "null");
-      return pending && pending.userId === userId && pending.data && typeof pending.data === "object" ? pending : null;
+      const pendingScope = pending?.scopeId || (pending?.userId ? `personal:${pending.userId}` : "");
+      return pending && pending.userId === userId && pendingScope === scopeId && pending.data && typeof pending.data === "object" ? pending : null;
     } catch { return null; }
   }
 
   function savePending(data, expectedVersion) {
-    localStorage.setItem(PENDING_KEY, JSON.stringify({ userId, expectedVersion, data }));
+    localStorage.setItem(PENDING_KEY, JSON.stringify({ userId, scopeId, expectedVersion, data }));
   }
 
   async function requestWithTimeout(path, options) {
@@ -109,7 +111,7 @@
     return requestWithTimeout("/api/workspace", {
       method: "PUT",
       token: context()?.token,
-      body: { data, expectedVersion }
+      body: { data, expectedVersion, scopeId }
     });
   }
 
@@ -119,17 +121,19 @@
     userId = signedIn.user.id;
     const previousOwner = localStorage.getItem(OWNER_KEY) || "";
     let localData = snapshot();
-    let pending = parsePending();
-    if (previousOwner && previousOwner !== userId) {
-      clearWorkspace();
-      localStorage.removeItem(PENDING_KEY);
-      localData = {};
-      pending = null;
-    }
     setStatus("Loading your shared workspace…", "loading");
 
     try {
       const remote = await readRemote();
+      scopeId = typeof remote.scopeId === "string" && remote.scopeId ? remote.scopeId : `personal:${userId}`;
+      const scopeOwner = `${userId}|${scopeId}`;
+      const sameScope = previousOwner === scopeOwner || (scopeId === `personal:${userId}` && previousOwner === userId);
+      if ((scopeId.startsWith("team:") && !sameScope) || (previousOwner && !sameScope)) {
+        clearWorkspace();
+        localStorage.removeItem(PENDING_KEY);
+        localData = {};
+      }
+      const pending = parsePending();
       version = Number(remote.version) || 0;
       latestRemote = remote.data && typeof remote.data === "object" ? remote.data : {};
 
@@ -159,7 +163,7 @@
         applySnapshot(localData);
       } else if (version > 0 && Object.keys(latestRemote).length) {
         applySnapshot(latestRemote);
-      } else if (Object.keys(localData).length && (!previousOwner || previousOwner === userId)) {
+      } else if (Object.keys(localData).length && (!previousOwner || sameScope)) {
         const migrated = await writeRemote(localData, 0);
         version = Number(migrated.version) || 1;
         latestRemote = localData;
@@ -167,7 +171,7 @@
       } else {
         applySnapshot(latestRemote);
       }
-      localStorage.setItem(OWNER_KEY, userId);
+      localStorage.setItem(OWNER_KEY, scopeOwner);
       ready = true;
       if (!conflict && status?.dataset.state !== "offline") setStatus("All changes synced", "synced");
       startPolling();
@@ -189,6 +193,7 @@
     try {
       if (!ready) {
         const remote = await readRemote();
+        if (remote.scopeId && scopeId && remote.scopeId !== scopeId) throw new Error("This account has switched team workspaces. Refresh the workplace before saving.");
         const remoteVersion = Number(remote.version) || 0;
         const pending = parsePending();
         const expected = pending ? Number(pending.expectedVersion) || 0 : remoteVersion;
@@ -196,10 +201,11 @@
         version = remoteVersion;
       }
       const result = await writeRemote(data, version);
+      if (result.scopeId && scopeId && result.scopeId !== scopeId) throw new Error("Your team membership changed. Refresh the workplace before saving.");
       version = Number(result.version) || version + 1;
       latestRemote = data;
       ready = true;
-      localStorage.setItem(OWNER_KEY, userId);
+      localStorage.setItem(OWNER_KEY, `${userId}|${scopeId}`);
       localStorage.removeItem(PENDING_KEY);
       setStatus("All changes synced", "synced");
     } catch (error) {
@@ -218,7 +224,7 @@
   function changed() {
     if (!context() || !userId || window.PPMGuestDemo) return;
     if (conflict) return;
-    localStorage.setItem(OWNER_KEY, userId);
+    localStorage.setItem(OWNER_KEY, `${userId}|${scopeId}`);
     const data = snapshot();
     savePending(data, version);
     setStatus("Saving changes…", "saving");
@@ -230,6 +236,11 @@
     if (!ready || !userId || busy || document.visibilityState !== "visible" || !context()) return;
     try {
       const remote = await readRemote();
+      if (remote.scopeId && scopeId && remote.scopeId !== scopeId) {
+        conflict = true;
+        setStatus("Your team workspace changed. Refresh to load the current workspace.", "conflict", "Refresh workspace");
+        return;
+      }
       const remoteVersion = Number(remote.version) || 0;
       if (remoteVersion <= version) return;
       const remoteData = remote.data && typeof remote.data === "object" ? remote.data : {};

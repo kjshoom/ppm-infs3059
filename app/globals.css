@@ -1559,6 +1559,46 @@ body { background: var(--ink); }
 .account-profile-actions .outline-button { border: 1px solid var(--line); background: white; }
 .account-profile-actions .outline-button:hover { background: var(--soft); }
 .account-storage-note { margin: 22px 0 0; border-top: 1px solid var(--line); padding-top: 16px; color: var(--muted); font-size: 11px; line-height: 1.55; }
+.account-team-card { margin-top: 18px; border: 1px solid #deded8; border-radius: 18px; background: white; padding: clamp(22px, 5vw, 40px); box-shadow: 0 12px 40px rgba(20,20,15,.04); }
+.account-team-heading, .team-details-row, .team-members-heading, .team-leave-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.account-team-heading .section-kicker { margin: 0 0 7px; font-size: 10px; }
+.account-team-heading h2 { margin: 0; font-size: 25px; letter-spacing: -.045em; }
+.account-team-intro { max-width: 620px; margin: 14px 0 18px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+.account-team-message { min-height: 0; margin: 0; font-size: 12px; line-height: 1.5; }
+.account-team-message:empty { display: none; }
+.account-team-message[data-state="success"] { margin-bottom: 12px; color: #28764b; }
+.account-team-message[data-state="error"] { margin-bottom: 12px; color: #9d311f; }
+.team-loading { padding: 18px 0; color: var(--muted); font-size: 12px; }
+.team-count-pill, .team-role-badge { border: 1px solid #e0dfd7; border-radius: 999px; background: #f7f6f0; padding: 7px 11px; color: #56564f; font-size: 10px; font-weight: 800; white-space: nowrap; }
+.team-create-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 12px; }
+.team-create-form .auth-field, .team-invite-row .auth-field, .team-transfer-form .auth-field { gap: 7px; }
+.team-create-form input, .team-invite-row input, .team-transfer-form select { border-radius: 7px; }
+.team-create-form .auth-submit { min-height: 47px; border-radius: 7px; padding: 0 16px; font-size: 11px; white-space: nowrap; }
+.team-personal-note, .team-join-note { margin: 12px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.team-join-note { border-left: 3px solid #e6d86a; padding-left: 11px; }
+.team-details-row { margin: 12px 0 18px; }
+.team-details-row strong, .team-label { display: block; }
+.team-label { margin-bottom: 4px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.team-details-row strong { font-size: 19px; letter-spacing: -.03em; }
+.team-invite-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; }
+.team-invite-row input { min-width: 0; font-size: 12px; }
+.team-invite-row .outline-button, .team-transfer-form .outline-button, .team-leave-row .outline-button { min-height: 44px; border: 1px solid #d8d8d0; border-radius: 7px; background: white; padding: 0 15px; color: #252520; font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
+.team-invite-row .outline-button:hover, .team-transfer-form .outline-button:hover, .team-leave-row .outline-button:hover { background: #f7f6f0; }
+.team-invite-help { display: block; margin-top: 7px; color: var(--muted); font-size: 10px; line-height: 1.4; }
+.team-members-heading { margin: 22px 0 8px; font-size: 12px; }
+.team-members-heading span { color: var(--muted); font-size: 10px; }
+.team-member-list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.team-member-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding: 11px 0; }
+.team-member-list strong, .team-member-list small { display: block; }
+.team-member-list strong { font-size: 12px; }
+.team-member-list small { margin-top: 3px; color: var(--muted); font-size: 10px; }
+.team-member-list em { color: var(--muted); font-size: 10px; font-style: normal; font-weight: 750; }
+.team-transfer-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; margin-top: 19px; border-top: 1px solid var(--line); padding-top: 17px; }
+.team-transfer-form[hidden] { display: none; }
+.team-leave-row { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 16px; }
+.team-leave-row p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+.team-leave-row .outline-button { color: #6f3932; }
+@media (max-width: 620px) { .team-create-form, .team-invite-row, .team-transfer-form { grid-template-columns: 1fr; }.team-create-form .auth-submit, .team-invite-row .outline-button, .team-transfer-form .outline-button { justify-self: start; }.team-leave-row { align-items: flex-start; flex-direction: column; }.team-leave-row .outline-button { align-self: flex-start; } }
 
 .workplace-page { min-height: 100vh; background: #f1f1ec; }
 .workplace-topbar { position: sticky; top: 0; z-index: 100; display: flex; min-height: 68px; align-items: center; justify-content: flex-end; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.97); padding: 8px clamp(16px, 3vw, 42px); }

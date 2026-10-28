@@ -20,7 +20,9 @@ Objectives entered in Organisation setup are available in the proposal form. Sig
 
 After sign-in, the saved role filters the workspace screens: Project Proposers see proposal entry, Reviewers see evaluation, and Portfolio Managers see Investment Context and the portfolio screens (04–09). This is a prototype interface filter, not a security boundary. The prototype does not create an overall score, automatic ranking, recommended portfolio, or automatic final decision.
 
-Account sign-in uses the Java API in `backend/`. The same account can be used on more than one device. After sign-in, proposal, review, comment, organisation, shortlist, scenario, and decision changes sync to that account's workspace in PostgreSQL. A sync status appears in the workplace header. If the service is unavailable, changes remain on the current device and the header offers a retry.
+Account sign-in uses the Java API in `backend/`. The same account can be used on more than one device. By default, proposal, review, comment, organisation, shortlist, scenario, and decision changes sync to that account's personal workspace in PostgreSQL. A sync status appears in the workplace header. If the service is unavailable, changes remain on the current device and the header offers a retry.
+
+Different accounts can now collaborate in one shared team workspace. Open **Manage your PPM account → Work with your team** to create a team; the creator's current saved workspace is copied into it. Share the generated invitation link with teammates. They open the link and sign in or create their own PPM account to join, with no code entry. Workspace changes from members then sync to the same team data. Each account can belong to one team at a time; leaving returns that account to its separately saved personal workspace. Team members can see the other members' names and email addresses. Anyone who has the invitation link can join, so share it only with the intended team. If two members edit at the same time, the workspace version check prevents silent overwrites and asks one of them to refresh.
 
 Visitors without an account role see a read-only demo with sample projects. They can search, inspect, and compare samples or start the Live demo tour. Proposal submission, evaluations, shortlist changes, scenario editing, and decisions require sign-in. The guest demo does not read or write saved portfolio data.
 
@@ -32,7 +34,7 @@ Account settings also lets a signed-in user permanently delete their PPM sign-in
 
 The API uses Java 17+, Spring Boot, and PostgreSQL. It stores account credentials (as BCrypt hashes), profile details, and revocable sign-in sessions. GitHub Pages serves the frontend as static files; it does not run the Java server or provide an application database.
 
-The API stores each signed-in account's workspace separately. This enables the same person to use the same proposals and portfolio from another device after signing in. It does not yet provide team sharing between different accounts; that requires an organisation/team membership model and permissions.
+Personal workspaces are stored per account. Team workspaces use a shared PostgreSQL record linked to a team and membership records link each signed-in account to one team. The team creator can copy their saved personal workspace when creating a team, while invited members' personal workspace data stays separate. Team membership controls which account can access shared data through the API; role-based screen visibility remains a prototype interface filter rather than a security permission.
 
 ### Deploy the API
 
