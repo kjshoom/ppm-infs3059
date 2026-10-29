@@ -271,8 +271,6 @@ const STORAGE = {
   scenarioDecisions: "ppm-v2-scenario-decisions"
 };
 const PPM_REMOVED_PROPOSAL_KEY = "ppm-v2-removed-proposals";
-const storedRemovedProposalIds = readStoredJSON(PPM_REMOVED_PROPOSAL_KEY, []);
-const ppmRemovedProposalIds = new Set(Array.isArray(storedRemovedProposalIds) ? storedRemovedProposalIds.map(String) : []);
 
 const activeStorage = TEST_MODE ? window.sessionStorage : window.localStorage;
 const scopedStorageKey = (key) => TEST_MODE ? `${TEST_PREFIX}${key}` : key;
@@ -291,6 +289,9 @@ const storage = {
     }
   }
 };
+
+const storedRemovedProposalIds = readStoredJSON(PPM_REMOVED_PROPOSAL_KEY, []);
+const ppmRemovedProposalIds = new Set(Array.isArray(storedRemovedProposalIds) ? storedRemovedProposalIds.map(String) : []);
 
 // Test identities and data live only under the test prefix in this tab.
 // Do not copy the signed-in user, demo selection, or saved workspace into here.
