@@ -12,6 +12,7 @@
   const message = document.querySelector("#workspace-sync-message");
   const action = document.querySelector("#workspace-sync-action");
   let userId = "";
+  let userRole = "";
   let scopeId = "";
   let version = 0;
   let ready = false;
@@ -81,12 +82,12 @@
     try {
       const pending = JSON.parse(localStorage.getItem(PENDING_KEY) || "null");
       const pendingScope = pending?.scopeId || (pending?.userId ? `personal:${pending.userId}` : "");
-      return pending && pending.userId === userId && pendingScope === scopeId && pending.data && typeof pending.data === "object" ? pending : null;
+      return pending && pending.userId === userId && pending.role === userRole && pendingScope === scopeId && pending.data && typeof pending.data === "object" ? pending : null;
     } catch { return null; }
   }
 
   function savePending(data, expectedVersion) {
-    localStorage.setItem(PENDING_KEY, JSON.stringify({ userId, scopeId, expectedVersion, data }));
+    localStorage.setItem(PENDING_KEY, JSON.stringify({ userId, role: userRole, scopeId, expectedVersion, data }));
   }
 
   async function requestWithTimeout(path, options) {
@@ -119,20 +120,24 @@
     const signedIn = context();
     if (!signedIn) { hideStatus(); return false; }
     userId = signedIn.user.id;
+    userRole = signedIn.user.role || "";
     const previousOwner = localStorage.getItem(OWNER_KEY) || "";
     let localData = snapshot();
-    setStatus("Loading your shared workspace…", "loading");
+      setStatus("Loading your role workspace…", "loading");
 
     try {
       const remote = await readRemote();
       scopeId = typeof remote.scopeId === "string" && remote.scopeId ? remote.scopeId : `personal:${userId}`;
       const scopeOwner = `${userId}|${scopeId}`;
       const sameScope = previousOwner === scopeOwner || (scopeId === `personal:${userId}` && previousOwner === userId);
-      if ((scopeId.startsWith("team:") && !sameScope) || (previousOwner && !sameScope)) {
+      if (previousOwner && !sameScope) {
         clearWorkspace();
         localStorage.removeItem(PENDING_KEY);
         localData = {};
       }
+      const pendingCache = JSON.parse(localStorage.getItem(PENDING_KEY) || "null");
+      const pendingScope = pendingCache?.scopeId || (pendingCache?.userId ? `personal:${pendingCache.userId}` : "");
+      if (pendingCache && (pendingCache.userId !== userId || pendingCache.role !== userRole || pendingScope !== scopeId)) localStorage.removeItem(PENDING_KEY);
       const pending = parsePending();
       version = Number(remote.version) || 0;
       latestRemote = remote.data && typeof remote.data === "object" ? remote.data : {};
@@ -146,15 +151,15 @@
         } else try {
           const saved = await writeRemote(pending.data, expectedVersion);
           version = Number(saved.version) || version;
-          localData = pending.data;
+          localData = saved.data && typeof saved.data === "object" ? saved.data : pending.data;
           localStorage.removeItem(PENDING_KEY);
           latestRemote = localData;
           setStatus("Changes synced", "synced");
         } catch (error) {
-          if (error instanceof Error && error.message.includes("changed on another device")) {
+          if (error instanceof Error && error.message.includes("changed on another")) {
             conflict = true;
             localData = pending.data;
-            setStatus("Another device has newer changes. Choose which copy to use.", "conflict", "Use shared version");
+            setStatus("Another account or device has newer changes. Choose which copy to use.", "conflict", "Use shared version");
           } else {
             localData = pending.data;
             setStatus("Saved here · waiting to sync", "offline", "Retry");
@@ -163,7 +168,7 @@
         applySnapshot(localData);
       } else if (version > 0 && Object.keys(latestRemote).length) {
         applySnapshot(latestRemote);
-      } else if (Object.keys(localData).length && (!previousOwner || sameScope)) {
+      } else if (Object.keys(localData).length && (!previousOwner || sameScope) && scopeId !== "shared:everyone") {
         const migrated = await writeRemote(localData, 0);
         version = Number(migrated.version) || 1;
         latestRemote = localData;
@@ -193,25 +198,26 @@
     try {
       if (!ready) {
         const remote = await readRemote();
-        if (remote.scopeId && scopeId && remote.scopeId !== scopeId) throw new Error("This account has switched team workspaces. Refresh the workplace before saving.");
+        if (remote.scopeId && scopeId && remote.scopeId !== scopeId) throw new Error("This workspace scope changed. Refresh the workplace before saving.");
         const remoteVersion = Number(remote.version) || 0;
         const pending = parsePending();
         const expected = pending ? Number(pending.expectedVersion) || 0 : remoteVersion;
-        if (remoteVersion !== expected) throw new Error("This workspace changed on another device.");
+        if (remoteVersion !== expected) throw new Error("This shared workspace changed on another account or device.");
         version = remoteVersion;
       }
       const result = await writeRemote(data, version);
-      if (result.scopeId && scopeId && result.scopeId !== scopeId) throw new Error("Your team membership changed. Refresh the workplace before saving.");
+      if (result.scopeId && scopeId && result.scopeId !== scopeId) throw new Error("This workspace scope changed. Refresh the workplace before saving.");
       version = Number(result.version) || version + 1;
-      latestRemote = data;
+      latestRemote = result.data && typeof result.data === "object" ? result.data : data;
+      if (result.data && typeof result.data === "object") applySnapshot(result.data);
       ready = true;
       localStorage.setItem(OWNER_KEY, `${userId}|${scopeId}`);
       localStorage.removeItem(PENDING_KEY);
       setStatus("All changes synced", "synced");
     } catch (error) {
-      if (error instanceof Error && error.message.includes("changed on another device")) {
+      if (error instanceof Error && error.message.includes("changed on another")) {
         conflict = true;
-        setStatus("Another device has newer changes. Choose which copy to use.", "conflict", "Use shared version");
+        setStatus("Another account or device has newer changes. Choose which copy to use.", "conflict", "Use shared version");
       } else {
         setStatus("Saved here · waiting to sync", "offline", "Retry");
       }
@@ -238,7 +244,7 @@
       const remote = await readRemote();
       if (remote.scopeId && scopeId && remote.scopeId !== scopeId) {
         conflict = true;
-        setStatus("Your team workspace changed. Refresh to load the current workspace.", "conflict", "Refresh workspace");
+        setStatus("Your role workspace changed. Refresh to load the current view.", "conflict", "Refresh workspace");
         return;
       }
       const remoteVersion = Number(remote.version) || 0;
@@ -253,7 +259,7 @@
       }
       conflict = true;
       latestRemote = remoteData;
-      setStatus("A newer shared version is available.", "conflict", "Refresh workspace");
+      setStatus("New information is available for this role. Refresh to load it.", "conflict", "Refresh workspace");
     } catch { /* Brief network interruptions do not interrupt active work. */ }
   }
 

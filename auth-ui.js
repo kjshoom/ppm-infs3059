@@ -9,7 +9,7 @@
   const REMOTE_USER_KEY = "ppm-auth-user-v1";
   const DEMO_ROLE_KEY = "ppm-demo-role-v1";
   const DEMO_MODE_KEY = "ppm-demo-mode-v1";
-  const PAGE_VERSION = "20261029-team-workspace-v1";
+  const PAGE_VERSION = "20261029-role-aware-workspace-v1";
   const ROLE_SELECT_URL = pageURL("role-select.html");
   const ASSISTED_MODE_PREFIX = "ppm-assisted-mode-v1:";
   const ITERATIONS = 210000;
@@ -283,174 +283,11 @@
     return { id: updated.id, name: updated.name, email: updated.email, role: updated.role, createdAt: updated.createdAt };
   }
 
-  function setTeamMessage(text, state = "") {
-    const message = $("#team-message");
-    if (!message) return;
-    message.textContent = text;
-    message.dataset.state = state;
-  }
-
-  function renderTeam(team, user) {
-    const loading = $("#team-loading");
-    const empty = $("#team-no-membership");
-    const current = $("#team-current");
-    loading.hidden = true;
-    empty.hidden = Boolean(team);
-    current.hidden = !team;
-    $("#team-count-pill").hidden = !team;
-    if (!team) return;
-
-    $("#team-name-display").textContent = team.name;
-    $("#team-role-display").textContent = team.role === "OWNER" ? "Owner" : "Member";
-    $("#team-count-pill").textContent = `${team.memberCount} ${team.memberCount === 1 ? "member" : "members"}`;
-    $("#team-member-count").textContent = String(team.memberCount);
-    const inviteURL = new URL("./account.html", window.location.href);
-    inviteURL.searchParams.set("join", team.inviteCode);
-    $("#team-invite-link").value = inviteURL.href;
-    $("#team-member-list").innerHTML = (team.members || []).map((member) =>
-      `<li><span><strong>${escapeHTML(member.name)}</strong><small>${escapeHTML(member.email)}</small></span><em>${member.role === "OWNER" ? "Owner" : "Member"}</em></li>`).join("");
-
-    const transferForm = $("#team-transfer-form");
-    const transferSelect = $("#team-transfer-member");
-    const otherMembers = (team.members || []).filter((member) => member.id !== user.id);
-    transferForm.hidden = team.role !== "OWNER" || otherMembers.length === 0;
-    transferSelect.innerHTML = '<option value="">Choose a member</option>' + otherMembers
-      .map((member) => `<option value="${escapeHTML(member.email)}">${escapeHTML(member.name)} · ${escapeHTML(member.email)}</option>`).join("");
-    $("#team-leave-note").textContent = team.role === "OWNER" && otherMembers.length
-      ? "Transfer ownership to another member before leaving."
-      : team.role === "OWNER"
-        ? "Leaving as the only member deletes this empty team. Your personal workspace remains saved."
-        : "Your personal workspace will remain saved if you leave this team.";
-  }
-
-  async function initTeamSettings(user) {
-    const card = $("#account-team-card");
-    if (!card) return;
-    const createForm = $("#team-create-form");
-    const joinNote = card.querySelector(".team-join-note");
-    if (!apiBase()) {
-      $("#team-loading").hidden = true;
-      $("#team-no-membership").hidden = false;
-      createForm.hidden = true;
-      joinNote.textContent = "Team workspaces are available after signing in through the connected PPM account service.";
-      setTeamMessage("The shared account service is not configured in this browser.", "error");
-      return;
-    }
-    const token = remoteToken();
-    if (!token) {
-      setTeamMessage("Your session has expired. Sign in again to manage a team.", "error");
-      return;
-    }
-
-    const loadTeam = async () => {
-      const state = await apiRequest("/api/team", { token });
-      const team = state.team || null;
-      renderTeam(team, user);
-      return team;
-    };
-    const url = new URL(window.location.href);
-    const invitation = url.searchParams.get("join") || "";
-    if (invitation) {
-      url.searchParams.delete("join");
-      history.replaceState(null, "", url.href);
-      $("#team-loading").hidden = false;
-      $("#team-no-membership").hidden = true;
-      try {
-        const team = await apiRequest("/api/team/join", { method: "POST", body: { inviteCode: invitation }, token });
-        renderTeam(team, user);
-        setTeamMessage(`You joined ${team.name}. Open the workplace to see the team’s shared projects.`, "success");
-      } catch (error) {
-        setTeamMessage(error instanceof Error ? error.message : "We couldn’t join this team.", "error");
-        try { await loadTeam(); } catch { /* Keep the invitation error visible if team lookup also fails. */ }
-      }
-    } else {
-      try { await loadTeam(); }
-      catch (error) {
-        $("#team-loading").hidden = true;
-        $("#team-no-membership").hidden = false;
-        createForm.hidden = true;
-        setTeamMessage(error instanceof Error ? error.message : "We couldn’t load team settings.", "error");
-      }
-    }
-
-    createForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      if (!createForm.reportValidity()) return;
-      const button = $("#team-create-submit");
-      button.disabled = true;
-      button.textContent = "Creating…";
-      setTeamMessage("");
-      try {
-        const team = await apiRequest("/api/team", { method: "POST", body: { name: $("#team-name").value.trim() }, token });
-        renderTeam(team, user);
-        setTeamMessage("Your shared workspace is ready. Copy the invitation link to your teammates.", "success");
-      } catch (error) {
-        setTeamMessage(error instanceof Error ? error.message : "We couldn’t create this team.", "error");
-      } finally {
-        button.disabled = false;
-        button.textContent = "Create shared workspace";
-      }
-    });
-
-    $("#team-copy-invite").addEventListener("click", async () => {
-      const field = $("#team-invite-link");
-      try {
-        await navigator.clipboard.writeText(field.value);
-      } catch {
-        field.focus();
-        field.select();
-        document.execCommand("copy");
-      }
-      const button = $("#team-copy-invite");
-      button.textContent = "Copied";
-      window.setTimeout(() => { button.textContent = "Copy link"; }, 1600);
-    });
-
-    $("#team-transfer-form").addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const button = $("#team-transfer-submit");
-      const email = $("#team-transfer-member").value;
-      if (!email) return;
-      button.disabled = true;
-      button.textContent = "Transferring…";
-      try {
-        const team = await apiRequest("/api/team/transfer", { method: "POST", body: { email }, token });
-        renderTeam(team, user);
-        setTeamMessage("Team ownership has been transferred.", "success");
-      } catch (error) {
-        setTeamMessage(error instanceof Error ? error.message : "We couldn’t transfer ownership.", "error");
-      } finally {
-        button.disabled = false;
-        button.textContent = "Transfer ownership";
-      }
-    });
-
-    $("#team-leave-button").addEventListener("click", async () => {
-      const teamName = $("#team-name-display").textContent;
-      if (!window.confirm(`Leave ${teamName}? Your personal workspace will stay saved.`)) return;
-      const button = $("#team-leave-button");
-      button.disabled = true;
-      setTeamMessage("");
-      try {
-        await apiRequest("/api/team", { method: "DELETE", token });
-        renderTeam(null, user);
-        setTeamMessage("You left the team. Your personal workspace is active again when you open the workplace.", "success");
-      } catch (error) {
-        setTeamMessage(error instanceof Error ? error.message : "We couldn’t leave this team.", "error");
-      } finally {
-        button.disabled = false;
-      }
-    });
-  }
-
   function initAccountPage(user) {
     const form = $("#account-profile-form");
     if (!form) return;
     if (!user) {
-      const invitation = new URLSearchParams(window.location.search).get("join");
-      const signInURL = new URL(authURL("login", "account.html"), window.location.href);
-      if (invitation) signInURL.searchParams.set("join", invitation);
-      window.location.replace(signInURL.href);
+      window.location.replace(authURL("login", "account.html"));
       return;
     }
 
@@ -467,10 +304,9 @@
     avatar.textContent = avatarName(user.name);
     if (storageNote) {
       storageNote.textContent = apiBase()
-        ? "Your profile and workplace data are saved to this account and sync when you sign in on another device."
-        : "Changes are saved in this browser only. They will not sync to another device until a shared account service is connected.";
+        ? "Your account details stay private. Proposers see their own submissions, reviewers see proposals for assessment, and portfolio managers see the full portfolio."
+        : "The demo workspace is available in this browser only. Changes do not sync without the shared account service.";
     }
-    initTeamSettings(user);
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -741,8 +577,6 @@
           }
         }
         const destination = new URL(pageURL(returnTo), window.location.href);
-        const invitation = params.get("join");
-        if (returnTo === "account.html" && invitation) destination.searchParams.set("join", invitation);
         window.location.assign(destination.href);
       } catch (error) {
         message.dataset.state = "error";

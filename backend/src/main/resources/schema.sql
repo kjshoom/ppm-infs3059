@@ -59,3 +59,10 @@ CREATE TABLE IF NOT EXISTS ppm_team_workspace_data (
   version BIGINT NOT NULL DEFAULT 1,
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS ppm_shared_workspace_data (
+  workspace_id VARCHAR(32) PRIMARY KEY,
+  workspace_json TEXT NOT NULL,
+  version BIGINT NOT NULL DEFAULT 1,
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL
+);

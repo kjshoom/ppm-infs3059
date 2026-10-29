@@ -19,13 +19,6 @@ final class AuthModels {
     record WorkspaceRequest(Map<String, String> data, Long expectedVersion, String scopeId) {}
     record WorkspaceResponse(String scopeId, Map<String, String> data, long version) {}
     record StoredWorkspace(String json, long version) {}
-    record TeamCreateRequest(String name) {}
-    record TeamJoinRequest(String inviteCode) {}
-    record TeamTransferRequest(String email) {}
-    record TeamMember(UUID id, String name, String email, String role) {}
-    record TeamResponse(UUID id, String name, String inviteCode, String role, int memberCount,
-                        java.util.List<TeamMember> members) {}
-    record TeamState(TeamResponse team) {}
     record StoredUser(UUID id, String name, String email, String passwordHash, String role, Instant createdAt) {
         UserResponse toResponse() {
             return new UserResponse(id, name, email, role, createdAt);

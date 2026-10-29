@@ -270,6 +270,9 @@ const STORAGE = {
   decisions: "ppm-v2-decisions",
   scenarioDecisions: "ppm-v2-scenario-decisions"
 };
+const PPM_REMOVED_PROPOSAL_KEY = "ppm-v2-removed-proposals";
+const storedRemovedProposalIds = readStoredJSON(PPM_REMOVED_PROPOSAL_KEY, []);
+const ppmRemovedProposalIds = new Set(Array.isArray(storedRemovedProposalIds) ? storedRemovedProposalIds.map(String) : []);
 
 const activeStorage = TEST_MODE ? window.sessionStorage : window.localStorage;
 const scopedStorageKey = (key) => TEST_MODE ? `${TEST_PREFIX}${key}` : key;
@@ -370,6 +373,7 @@ function normaliseResources(values) {
 function normaliseProposal(raw) {
   return {
     id: String(raw.id),
+    createdBy: String(raw.createdBy || ""),
     title: String(raw.title || "Untitled IT project"),
     owner: String(raw.owner || "Not assigned"),
     category: String(raw.category || "IT project"),
@@ -410,7 +414,8 @@ function normaliseOrganisation(raw) {
 }
 
 let organisation = normaliseOrganisation(readStoredJSON(STORAGE.organisation, TEST_MODE ? TEST_ORGANISATION : DEFAULT_ORGANISATION));
-const initialProposals = TEST_MODE ? TEST_PROPOSALS : DEMO_PROPOSALS;
+const initialProposals = (TEST_MODE ? TEST_PROPOSALS : DEMO_PROPOSALS)
+  .filter((proposal) => TEST_MODE || !ppmRemovedProposalIds.has(String(proposal.id)));
 const proposalMap = new Map(initialProposals.map((proposal) => [proposal.id, normaliseProposal(proposal)]));
 readStoredJSON(STORAGE.customProposals, []).forEach((proposal) => {
   const normalised = normaliseProposal(proposal);
@@ -520,6 +525,37 @@ function statusClass(status) {
 
 function persistCustomProposals() {
   storage.set(STORAGE.customProposals, JSON.stringify(proposals.filter((proposal) => proposal.isCustom)));
+}
+
+function proposerSubmissions() {
+  const userId = activeAccount()?.id || window.PPMAuth?.currentUser?.()?.id || "";
+  if (!userId || GUEST_DEMO) return [];
+  return proposals.filter((proposal) => proposal.isCustom && proposal.createdBy === userId)
+    .sort((left, right) => right.id.localeCompare(left.id));
+}
+
+function renderProposerSubmissions() {
+  const section = $("#my-proposals-section");
+  const list = $("#my-proposals-list");
+  if (!section || !list) return;
+  section.hidden = GUEST_DEMO;
+  if (GUEST_DEMO) return;
+  const mine = proposerSubmissions();
+  if (!mine.length) {
+    list.innerHTML = '<p class="my-proposals-empty">Your submitted proposals will appear here with their review status.</p>';
+    return;
+  }
+  list.innerHTML = mine.map((proposal) => {
+    const status = currentStatus(proposal);
+    const comments = evaluationComments(proposal.id);
+    const reviewNote = storage.get(`ppm-note-${proposal.id}`) || "";
+    const ratings = CRITERIA.map((criterion) => `${criterion.short} ${proposal.scores[criterion.key]}/5`).join(" · ");
+    const reviewSummary = isEvaluated(proposal)
+      ? `<p class="my-proposal-feedback">Review recorded${proposal.reviewedBy ? ` by ${escapeHTML(proposal.reviewedBy)}` : ""} · ${escapeHTML(ratings)}.${reviewNote ? ` ${escapeHTML(reviewNote)}` : ""}</p>${comments.map((comment) => `<blockquote class="my-proposal-comment"><strong>${escapeHTML(comment.author || "Reviewer")}</strong><span>${escapeHTML(comment.text || "")}</span></blockquote>`).join("")}`
+      : '<p class="my-proposal-feedback">Waiting for a reviewer to assess this proposal.</p>';
+    return `<article class="my-proposal-card"><div><h4>${escapeHTML(proposal.title)}</h4><p>${escapeHTML(proposal.objective)} · ${money(proposal.cost)} · ${proposal.staff} FTE</p></div><span class="status-pill ${statusClass(status)}">${escapeHTML(status)}</span>${reviewSummary}<button type="button" class="card-remove-button" data-delete-proposal="${escapeHTML(proposal.id)}">Delete my submission</button></article>`;
+  }).join("");
+  bindCustomProposalDeleteButtons(list);
 }
 
 function persistEvaluation(proposal) {
@@ -1146,10 +1182,9 @@ function renderReviewQueue() {
     const evaluated = isEvaluated(proposal);
     const commentsCount = evaluationComments(proposal.id).length;
     const evaluator = proposal.reviewedBy ? `Reviewed by ${escapeHTML(proposal.reviewedBy)}.` : "Evaluation is recorded.";
-    return `<article class="review-queue-card ${evaluated ? "" : "is-awaiting"}" data-context-help-title="${escapeHTML(proposal.title)} evaluation" data-context-help-text="${evaluated ? "Open the completed evaluation to inspect all five ratings, rationales, and any follow-up comments." : "Open this proposal, assess all five criteria using the scoring guide, and record a short evidence-based rationale for each rating."}"><div class="review-queue-card-top"><p class="section-kicker">${evaluated ? "Evaluation recorded" : "Awaiting review"}</p><span class="status-pill ${evaluated ? "status-evaluated" : "status-under-review"}">${evaluated ? "Reviewed" : "Not reviewed yet"}</span></div><h4>${escapeHTML(proposal.title)}</h4><p>${escapeHTML(proposal.owner)} · ${escapeHTML(proposal.objective)} · ${money(proposal.cost)} · ${proposal.staff} FTE</p><div class="queue-profile">${evaluated ? `${evaluator} Five ratings and rationale saved${commentsCount ? ` · ${commentsCount} ${commentsCount === 1 ? "comment" : "comments"}` : ""}.` : "Review has not been completed."}</div><div class="review-queue-actions"><button type="button" class="outline-button" data-review-queue-id="${escapeHTML(proposal.id)}">${evaluated ? "View evaluation & comments" : "Start evaluation"}</button>${proposal.isCustom ? `<button type="button" class="card-remove-button" data-delete-proposal="${escapeHTML(proposal.id)}">Remove added</button>` : ""}</div></article>`;
+    return `<article class="review-queue-card ${evaluated ? "" : "is-awaiting"}" data-context-help-title="${escapeHTML(proposal.title)} evaluation" data-context-help-text="${evaluated ? "Open the completed evaluation to inspect all five ratings, rationales, and any follow-up comments." : "Open this proposal, assess all five criteria using the scoring guide, and record a short evidence-based rationale for each rating."}"><div class="review-queue-card-top"><p class="section-kicker">${evaluated ? "Evaluation recorded" : "Awaiting review"}</p><span class="status-pill ${evaluated ? "status-evaluated" : "status-under-review"}">${evaluated ? "Reviewed" : "Not reviewed yet"}</span></div><h4>${escapeHTML(proposal.title)}</h4><p>${escapeHTML(proposal.owner)} · ${escapeHTML(proposal.objective)} · ${money(proposal.cost)} · ${proposal.staff} FTE</p><div class="queue-profile">${evaluated ? `${evaluator} Five ratings and rationale saved${commentsCount ? ` · ${commentsCount} ${commentsCount === 1 ? "comment" : "comments"}` : ""}.` : "Review has not been completed."}</div><div class="review-queue-actions"><button type="button" class="outline-button" data-review-queue-id="${escapeHTML(proposal.id)}">${evaluated ? "View evaluation & comments" : "Start evaluation"}</button></div></article>`;
   }).join("");
   $$('[data-review-queue-id]').forEach((button) => button.addEventListener("click", () => openReview(button.dataset.reviewQueueId)));
-  bindCustomProposalDeleteButtons($("#review-queue"));
 }
 
 const QUICK_CHECKS = [
@@ -1686,6 +1721,7 @@ function submitProposal(event) {
     rationales: {},
     missing: [],
     isCustom: true,
+    createdBy: activeAccount()?.id || window.PPMAuth?.currentUser?.()?.id || "",
     scenarioGroup: ""
   });
   proposals.unshift(proposal);
@@ -1846,6 +1882,7 @@ function renderAll() {
   renderSidebarAccountSummary();
   renderOrganisationForm();
   populateObjectives();
+  renderProposerSubmissions();
   renderSummary();
   renderResults();
   renderScenario();
@@ -2366,8 +2403,6 @@ function setActiveView(view) {
 
 
 /* PPM browser-local removal controls */
-const PPM_REMOVED_PROPOSAL_KEY = "ppm-v2-removed-proposals";
-const ppmRemovedProposalIds = new Set(readStoredJSON(PPM_REMOVED_PROPOSAL_KEY, []));
 
 function saveRemovedProposals() {
   storage.set(PPM_REMOVED_PROPOSAL_KEY, JSON.stringify([...ppmRemovedProposalIds]));
