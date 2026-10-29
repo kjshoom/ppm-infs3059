@@ -44,7 +44,7 @@
       source.querySelectorAll("dialog.modal").forEach((dialog) => document.body.append(dialog.cloneNode(true)));
       loading.hidden = true;
 
-      await loadScript("./app.js?v=20261029-init-order-fix-v1");
+      await loadScript("./app.js?v=20261030-evaluation-results-v1");
       if (window.PPMGuestDemo) await loadScript("./guest-demo.js?v=20261023-help-labels-v1");
       await loadScript("./public/test-feedback.js?v=20261012-demo-mvp-v1");
       await loadScript("./guided-tour.js?v=20261023-help-labels-v1");
