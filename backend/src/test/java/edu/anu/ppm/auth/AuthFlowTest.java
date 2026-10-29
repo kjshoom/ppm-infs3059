@@ -213,46 +213,73 @@ class AuthFlowTest {
     }
 
     @Test
-    void workspaceDataSyncsAcrossSessionsAndIsPrivateToItsAccount() throws Exception {
-        String email = "workspace-" + System.nanoTime() + "@example.com";
-        String signup = "{\"name\":\"Workspace User\",\"email\":\"" + email + "\",\"password\":\"project-ppm-2026\",\"role\":\"Reviewer\"}";
+    void workspaceIsSharedAcrossAccountsAndFilteredByRole() throws Exception {
+        String managerToken = registerWorkspaceAccount("Portfolio Manager");
+        String proposerAToken = registerWorkspaceAccount("Project Proposer");
+        String proposerBToken = registerWorkspaceAccount("Project Proposer");
+        String reviewerToken = registerWorkspaceAccount("Reviewer");
+
+        MvcResult initial = http.perform(get("/api/workspace").header("Authorization", "Bearer " + proposerAToken))
+                .andExpect(status().isOk()).andReturn();
+        assertThat(initial.getResponse().getContentAsString()).contains("shared:everyone", "\"version\":1", "\"ppm-v2-custom-proposals\":\"[]\"");
+
+        saveWorkspace(managerToken, 1, "{\"ppm-organisation\":\"{\\\"name\\\":\\\"Shared IT\\\"}\"}")
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.version").value(2));
+        saveWorkspace(proposerAToken, 2, "{\"ppm-v2-custom-proposals\":\"[{\\\"id\\\":\\\"project-a\\\",\\\"title\\\":\\\"Project A\\\",\\\"cost\\\":100000}]\"}")
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.version").value(3));
+        saveWorkspace(proposerBToken, 3, "{\"ppm-v2-custom-proposals\":\"[{\\\"id\\\":\\\"project-b\\\",\\\"title\\\":\\\"Project B\\\",\\\"cost\\\":200000}]\"}")
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.version").value(4));
+        saveWorkspace(reviewerToken, 4, "{\"ppm-evaluation-project-a\":\"{\\\"reviewedBy\\\":\\\"Reviewer\\\"}\",\"ppm-v2-evaluation-comments\":\"{\\\"project-a\\\":[{\\\"text\\\":\\\"Evidence reviewed\\\"}]}\"}")
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.version").value(5));
+
+        http.perform(get("/api/workspace").header("Authorization", "Bearer " + proposerAToken))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.scopeId").value("shared:everyone"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.version").value(5))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data['ppm-organisation']").value("{\"name\":\"Shared IT\"}"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data['ppm-v2-custom-proposals']").value(org.hamcrest.Matchers.containsString("project-a")))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data['ppm-v2-custom-proposals']").value(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("project-b"))))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data['ppm-evaluation-project-a']").exists());
+
+        http.perform(get("/api/workspace").header("Authorization", "Bearer " + proposerBToken))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.version").value(5))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data['ppm-v2-custom-proposals']").value(org.hamcrest.Matchers.containsString("project-b")))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data['ppm-v2-custom-proposals']").value(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("project-a"))))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data['ppm-evaluation-project-a']").doesNotExist());
+
+        http.perform(get("/api/workspace").header("Authorization", "Bearer " + reviewerToken))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data['ppm-v2-custom-proposals']").value(org.hamcrest.Matchers.allOf(
+                        org.hamcrest.Matchers.containsString("project-a"), org.hamcrest.Matchers.containsString("project-b"))))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data['ppm-evaluation-project-a']").value("{\"reviewedBy\":\"Reviewer\"}"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data['ppm-organisation']").doesNotExist());
+
+        http.perform(get("/api/workspace").header("Authorization", "Bearer " + managerToken))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data['ppm-v2-custom-proposals']").value(org.hamcrest.Matchers.allOf(
+                        org.hamcrest.Matchers.containsString("project-a"), org.hamcrest.Matchers.containsString("project-b"))))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data['ppm-organisation']").value("{\"name\":\"Shared IT\"}"));
+
+        http.perform(get("/api/workspace")).andExpect(status().isUnauthorized());
+    }
+
+    private String registerWorkspaceAccount(String role) throws Exception {
+        String email = "workspace-" + role.toLowerCase().replace(' ', '-') + "-" + System.nanoTime() + "@example.com";
+        String signup = "{\"name\":\"Workspace User\",\"email\":\"" + email + "\",\"password\":\"project-ppm-2026\",\"role\":\"" + role + "\"}";
         MvcResult created = http.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(signup))
                 .andExpect(status().isCreated()).andReturn();
-        String firstToken = field(created.getResponse().getContentAsString(), "token");
+        return field(created.getResponse().getContentAsString(), "token");
+    }
 
-        http.perform(get("/api/workspace").header("Authorization", "Bearer " + firstToken))
-                .andExpect(status().isOk())
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.version").value(0))
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data").isEmpty());
-
-        String save = "{\"expectedVersion\":0,\"data\":{\"ppm-organisation\":\"{\\\"name\\\":\\\"Shared IT\\\"}\",\"ppm-evaluation-project-a\":\"{\\\"reviewedBy\\\":\\\"Reviewer\\\"}\"}}";
-        http.perform(put("/api/workspace").header("Authorization", "Bearer " + firstToken)
-                        .contentType(MediaType.APPLICATION_JSON).content(save))
-                .andExpect(status().isOk())
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.version").value(1));
-
-        String login = "{\"email\":\"" + email + "\",\"password\":\"project-ppm-2026\"}";
-        MvcResult signedIn = http.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(login))
-                .andExpect(status().isOk()).andReturn();
-        String secondToken = field(signedIn.getResponse().getContentAsString(), "token");
-        http.perform(get("/api/workspace").header("Authorization", "Bearer " + secondToken))
-                .andExpect(status().isOk())
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data['ppm-organisation']").value("{\"name\":\"Shared IT\"}"))
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data['ppm-evaluation-project-a']").value("{\"reviewedBy\":\"Reviewer\"}"));
-
-        String otherSignup = "{\"name\":\"Another User\",\"email\":\"other-" + System.nanoTime() + "@example.com\",\"password\":\"project-ppm-2026\",\"role\":\"Project Proposer\"}";
-        MvcResult otherCreated = http.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(otherSignup))
-                .andExpect(status().isCreated()).andReturn();
-        String otherToken = field(otherCreated.getResponse().getContentAsString(), "token");
-        http.perform(get("/api/workspace").header("Authorization", "Bearer " + otherToken))
-                .andExpect(status().isOk())
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.version").value(0))
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data").isEmpty());
-
-        http.perform(put("/api/workspace").header("Authorization", "Bearer " + firstToken)
-                        .contentType(MediaType.APPLICATION_JSON).content(save))
-                .andExpect(status().isConflict());
-        http.perform(get("/api/workspace")).andExpect(status().isUnauthorized());
+    private org.springframework.test.web.servlet.ResultActions saveWorkspace(String token, long version, String data) throws Exception {
+        String body = "{\"scopeId\":\"shared:everyone\",\"expectedVersion\":" + version + ",\"data\":" + data + "}";
+        return http.perform(put("/api/workspace").header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON).content(body));
     }
 
     @Test
