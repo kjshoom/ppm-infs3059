@@ -1,69 +1,30 @@
-# PPM — Project Portfolio Management
+# PPM
 
-INFS3059 prototype for a focused IT project portfolio review process.
+INFS3059 prototype for reviewing project proposals and comparing portfolio options.
 
-## Open it
+- Website: https://kjshoom.github.io/ppm-infs3059/
+- Source code: https://github.com/kjshoom/ppm-infs3059
 
-- Live site: https://kjshoom.github.io/ppm-infs3059/
-- Source: https://github.com/kjshoom/ppm-infs3059
+## How it works
 
-Open `index.html`, or run `python3 -m http.server 4173` and visit `http://127.0.0.1:4173/`.
+The Portfolio Manager sets objectives, budget and staff capacity. Project Proposers submit proposals, Reviewers assess them against five criteria, and the Portfolio Manager compares projects, checks scenarios against available resources and records a decision.
 
-## What the prototype does
+The system shows each criterion separately. It does not rank projects or make the final decision.
 
-1. **Organisation** sets strategic objectives, budget, and available staff.
-2. **Proposer** enters a standard IT project proposal: description, benefits, cost, staff, timeline, and risks.
-3. **Reviewer** records five separate 1–5 ratings and a reason for each one.
-4. **Portfolio manager** filters projects, views one-project radar profiles or compares two to four projects, checks a Scenario A or B against budget and staff, then records a human decision.
+The sample workspace is read-only. Sign in to work with proposals, reviews and portfolio scenarios. Signed-in users share the workspace, which is saved in PostgreSQL through the Java backend.
 
-Objectives entered in Organisation setup are available in the proposal form. Signed-in workflow changes sync to a role-filtered shared PostgreSQL workspace; the optional Test MVP mode uses temporary test data in the current tab.
+## Run locally
 
-After sign-in, the saved role determines both the workspace screens and the records returned by the API. Project Proposers see only proposals they submitted, plus their own review feedback. Reviewers see proposals from all proposers and can record evaluations and comments. Portfolio Managers see all proposals, review evidence, and portfolio-level information such as the shortlist, scenarios, and decisions. Account credentials and profile details remain private. This is role-based workflow access for the prototype; users can change their selected role in account settings, so it is not institutional identity verification. The prototype does not create an overall score, automatic ranking, recommended portfolio, or automatic final decision.
+Open `index.html`, or run:
 
-Account sign-in uses the Java API in `backend/`. The same account can be used on more than one device. Signed-in workflow data is stored in a shared PostgreSQL workspace, but the API returns only the records needed for each role. Proposers can see their own submitted proposals and the related feedback; reviewers can see submissions to review; portfolio managers can see the full portfolio and make portfolio-level changes. Changes sync across accounts and devices within those role views. A sync status appears in the workplace header. If the service is unavailable, changes remain on the current device and the header offers a retry.
-
-Visitors without an account role see a read-only demo with sample projects. They can search, inspect, and compare samples or start the Live demo tour. Proposal submission, evaluations, shortlist changes, scenario editing, and decisions require sign-in. The guest demo does not read or write saved portfolio data.
-
-After signing in, open the profile circle and choose **Manage your PPM account** to update the name, email, or workspace role. The role is a prototype preference, not an access-control permission. Account settings remain outside the workplace workflow; the workplace sidebar no longer has an Account screen.
-
-Account settings also lets a signed-in user permanently delete their PPM sign-in, profile, and synced workspace after confirming the action.
-
-## Shared account API
-
-The API uses Java 17+, Spring Boot, and PostgreSQL. It stores account credentials (as BCrypt hashes), profile details, and revocable sign-in sessions. GitHub Pages serves the frontend as static files; it does not run the Java server or provide an application database.
-
-The API stores account credentials and profiles separately from the shared workflow record. Proposals are tagged with the submitting account so Project Proposers receive only their own records. Review and portfolio endpoints apply the current account role when reading and writing workspace data. Older per-account workspace records are retained in PostgreSQL; when the shared workspace is first opened, existing proposal records are copied into it and tagged with their original account ID. The selected role can be changed by the account holder, so this access model supports the prototype's workflow rather than enforcing an organisation's identity or employment permissions.
-
-### Deploy the API
-
-The repository includes a Render Blueprint in `render.yaml` and a production Spring profile. The intended no-cost student setup is a Render free web service plus a Supabase free PostgreSQL project. Expect the API to sleep after 15 minutes without traffic and take about a minute to wake; Supabase may pause a free project after a week of low database activity. The free database has no automatic backups. This is a demonstration setup, not a production service or a place for sensitive credentials. Do not add a payment method unless the team explicitly agrees to paid hosting, and check the providers’ current limits before creating resources.
-
-1. Create a Supabase project and save the database password somewhere private. In Supabase, open **Project Settings → Database → Connection string**, choose the **Session pooler**, and copy its host, port, database, and username. Use port `5432` and an SSL JDBC URL, for example `jdbc:postgresql://<pooler-host>:5432/postgres?sslmode=require`; use the actual values and pooler username shown for your project.
-2. In Render, create a new **Blueprint** from `https://github.com/kjshoom/ppm-infs3059`. Render reads `render.yaml` and asks for the three database variables. Enter the JDBC URL, pooler username, and database password. Do not put those values in this repository or in `api-config.js`.
-3. Wait for the Render deploy to become healthy. Check `https://<your-render-service>.onrender.com/api/health`; it should return `{"status":"ok"}`.
-4. Put the public Render service origin (without `/api`) in `api-config.js` and publish that one-line frontend configuration:
-
-```js
-window.PPM_CONFIG = Object.freeze({ apiBaseUrl: "https://your-render-service.onrender.com" });
+```sh
+python3 -m http.server 4173
 ```
 
-The Blueprint configures these server variables (never commit the database credentials):
+Then visit http://127.0.0.1:4173/.
 
-- `SPRING_PROFILES_ACTIVE=production` — requires the external PostgreSQL settings; it will not fall back to local credentials
-- `SPRING_DATASOURCE_URL` — PostgreSQL JDBC URL for the provider's session pooler, with `sslmode=require`
-- `SPRING_DATASOURCE_USERNAME`
-- `SPRING_DATASOURCE_PASSWORD`
-- `PPM_ALLOWED_ORIGINS` — the GitHub Pages origin and local development origins
-- `PPM_SESSION_HOURS` — sign-in token lifetime (default: 168 hours)
+## Backend
 
-When the API URL is set, account registration, sign-in, profile edits, sign-out, account deletion, and password reset use the shared account service. Password recovery uses a single-use link that expires after 30 minutes; passwords are never retrievable or partially displayed. To enable email delivery, configure `PPM_PASSWORD_RESET_MAIL_ENABLED=true`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, and a verified `PPM_MAIL_FROM` address in Render's environment settings. Keep mail credentials out of Git. Until a mail provider is configured, the recovery screen explains that email reset is unavailable. Run the backend tests with `cd backend && mvn test`; the integration tests use an in-memory database. This student prototype does not include email verification, distributed rate limiting, backups, or production monitoring, so it should not be used for sensitive accounts.
+The API uses Java 17+, Spring Boot and PostgreSQL. `render.yaml` contains the Render deployment setup. Add the database connection and allowed website origins in Render's environment settings, then set the API address in `api-config.js`.
 
-## Main files
-
-- `index.html` — page structure and role views
-- `app/globals.css` — responsive visual design and motion
-- `app.js` — sample data, forms, review flow, comparison, scenarios, and local storage
-- `auth-ui.js` / `api-config.js` — sign-in UI and the optional shared-account API address
-- `account.html` — signed-in profile settings
-- `backend/` — Java account API and PostgreSQL schema
-- `docs/process-flow.md` — review process
+Password reset needs SMTP settings in Render. Keep database and email credentials out of GitHub. Backend tests can be run with `cd backend && mvn test`.
