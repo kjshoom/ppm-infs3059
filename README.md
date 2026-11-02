@@ -15,13 +15,13 @@ The sample workspace is read-only. Sign in to work with proposals, reviews and p
 
 ## Run locally
 
-Open `index.html`, or run:
+The website link above works without any setup. To run the source code, open Terminal in the repository folder and start a local server:
 
 ```sh
 python3 -m http.server 4173
 ```
 
-Then visit http://127.0.0.1:4173/.
+Leave the server running, then open http://127.0.0.1:4173/ in your browser. Press `Ctrl+C` in Terminal to stop it.
 
 ## Backend
 
