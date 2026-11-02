@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#ffffff" />
-    <meta name="description" content="View the PPM sample workspace as a Project Proposer, Reviewer, or Portfolio Manager." />
+    <meta name="description" content="Explore the PPM sample workspace as a proposer, reviewer, or portfolio manager." />
     <title>Choose a role · PPM</title>
     <link rel="icon" href="public/favicon.svg" />
     <link rel="stylesheet" href="app/globals.css?v=20261019-draggable-assistant-v1" />
@@ -20,7 +20,7 @@
     <main class="role-select-main">
       <p class="section-kicker">Sample workspace</p>
       <h1>Select a role</h1>
-      <p class="role-select-intro">Choose a role to view its screens in the read-only sample workspace. You can switch roles at any time.</p>
+      <p class="role-select-intro">Explore the portfolio workflow from one of three roles. You can switch roles at any time.</p>
       <form id="role-select-form" class="role-select-form">
         <fieldset class="role-option-fieldset">
           <legend>Choose your role</legend>
@@ -29,25 +29,25 @@
               <input type="radio" name="role" value="Project Proposer" required />
               <span class="role-option-top"><span class="role-option-number">01</span><span class="role-option-check" aria-hidden="true">✓</span></span>
               <span class="role-option-icon" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none"><path class="role-icon-accent" d="M14 15h28v34H14z"/><path d="M22 11h20l10 10v32H22z"/><path d="M42 11v10h10M29 31h16M29 38h16M29 45h9"/></svg></span>
-              <span class="role-option-copy"><strong>Project Proposer</strong><small>View the proposal form and supporting information.</small></span>
+              <span class="role-option-copy"><strong>Project Proposer</strong><small>Explore proposal entry and supporting information.</small></span>
             </label>
             <label class="role-option">
               <input type="radio" name="role" value="Reviewer" />
               <span class="role-option-top"><span class="role-option-number">02</span><span class="role-option-check" aria-hidden="true">✓</span></span>
               <span class="role-option-icon" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none"><circle class="role-icon-accent" cx="41" cy="40" r="15"/><path d="M13 15h30v35H13zM20 24h16M20 32h10M20 40h8"/><path d="m34 40 6 6 13-15"/></svg></span>
-              <span class="role-option-copy"><strong>Reviewer</strong><small>Review project information using five criteria.</small></span>
+              <span class="role-option-copy"><strong>Reviewer</strong><small>Inspect the five criteria, rating guides, and reviewer reasons.</small></span>
             </label>
             <label class="role-option">
               <input type="radio" name="role" value="Portfolio Manager" />
               <span class="role-option-top"><span class="role-option-number">03</span><span class="role-option-check" aria-hidden="true">✓</span></span>
               <span class="role-option-icon" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none"><path class="role-icon-accent" d="M38 28h14v23H38z"/><path d="M12 13h40v38H12zM12 23h40M26 23v28M34 43v-8M41 43V31M47 43V28M18 31h3M18 38h3M18 45h3"/></svg></span>
-              <span class="role-option-copy"><strong>Portfolio Manager</strong><small>Set objectives and limits, compare projects, and record decisions.</small></span>
+              <span class="role-option-copy"><strong>Portfolio Manager</strong><small>Set context, compare projects, and record portfolio decisions.</small></span>
             </label>
           </div>
         </fieldset>
         <div class="role-select-actions">
           <p class="role-select-note">No account is needed for this read-only demo.<br />Sample projects are separate from your saved workplace.</p>
-          <button class="role-select-submit" type="submit">Continue with this role <span aria-hidden="true">→</span></button>
+          <button class="role-select-submit" type="submit">Explore this role <span aria-hidden="true">→</span></button>
         </div>
         <p class="role-select-error" id="role-select-error" role="status" aria-live="polite"></p>
       </form>
